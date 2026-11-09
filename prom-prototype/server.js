@@ -93,21 +93,45 @@ async function searchProm(query) {
   const html = await response.text();
   const scripts = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
   const products = [];
+  const jsonLdDiagnostics = [];
 
-  for (const match of scripts) {
+  for (let index = 0; index < scripts.length; index++) {
+    const raw = scripts[index][1].trim();
     try {
-      const parsed = JSON.parse(match[1].trim());
+      const parsed = JSON.parse(raw);
       const found = [];
       walk(parsed, found);
+      const rootTypes = Array.isArray(parsed)
+        ? parsed.map(item => item && item["@type"]).filter(Boolean)
+        : [parsed && parsed["@type"]].filter(Boolean);
+      jsonLdDiagnostics.push({
+        block: index + 1,
+        rootTypes,
+        rootKeys: parsed && typeof parsed === "object" ? Object.keys(parsed).slice(0, 20) : [],
+        productNodesFound: found.length,
+        productNodeDetails: found.slice(0, 5).map(product => ({
+          name: product.name || null,
+          hasOffers: Boolean(product.offers),
+          offerKeys: product.offers && typeof product.offers === "object"
+            ? Object.keys(Array.isArray(product.offers) ? product.offers[0] || {} : product.offers).slice(0, 15)
+            : []
+        })),
+        preview: raw.slice(0, 350)
+      });
       for (const product of found) {
         const cleaned = cleanProduct(product);
         if (cleaned?.title && cleaned.url) products.push(cleaned);
       }
-    } catch {
-      // Ignore malformed JSON-LD blocks and continue parsing other blocks.
+    } catch (error) {
+      jsonLdDiagnostics.push({
+        block: index + 1,
+        parseError: error.message,
+        preview: raw.slice(0, 250)
+      });
     }
   }
 
+  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   const unique = new Map();
   for (const product of products) {
     const key = product.url;
@@ -119,7 +143,10 @@ async function searchProm(query) {
     query,
     checkedAt: new Date().toISOString(),
     httpStatus: response.status,
+    pageTitle: titleMatch ? titleMatch[1].replace(/\s+/g, " ").trim() : null,
+    htmlMentionsQuery: html.toLowerCase().includes(query.toLowerCase()),
     parsedJsonLdBlocks: scripts.length,
+    jsonLdDiagnostics,
     products: [...unique.values()].sort((a, b) => a.price - b.price).slice(0, 30)
   };
 }
@@ -150,8 +177,7 @@ const server = http.createServer(async (req, res) => {
         : "No Product JSON-LD offers were parsed. This does not prove Prom has no matching products."
     });
   } catch (error) {
-    const status = error.status === 403 || error.status === 429 ? 502 : 502;
-    return send(res, status, {
+    return send(res, 502, {
       ok: false,
       source: "Prom.ua public search page",
       query,
