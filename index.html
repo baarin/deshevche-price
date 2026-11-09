@@ -23,7 +23,7 @@
     input{min-width:0;flex:1;border:0;outline:0;padding:12px 13px;font:inherit}
     button{border:0;border-radius:11px;background:var(--green);color:white;padding:13px 22px;font:700 15px inherit;cursor:pointer}
     button:hover{background:#10583d}.hint{color:#78847e;font-size:13px;margin:11px 4px}.search-results{margin-top:22px}.search-results h2{font-size:20px}.result-links{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.result-link{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--green);font-weight:700;text-decoration:none}.result-link:hover{border-color:var(--green);text-decoration:underline}
-    .paste-box{display:none;margin:18px 0 8px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}.paste-box textarea{display:block;width:100%;min-height:150px;border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.5 Arial,sans-serif;resize:vertical}.paste-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}.paste-actions small{color:var(--muted)}.listing-grid{display:grid;gap:10px;margin-top:16px}.listing{display:grid;grid-template-columns:1fr auto;gap:8px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px}.listing h3{font-size:16px;margin:0 0 5px}.listing p{font-size:13px;color:var(--muted);margin:0}.listing-price{font-size:20px;font-weight:800;white-space:nowrap}.listing a{color:var(--green);font-weight:700;font-size:13px}.sources{padding:20px 0 52px}.section-title{font-size:22px;margin:0 0 16px}
+    .paste-box{display:none;margin:18px 0 8px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}.paste-box input[type="url"]{display:block;width:100%;margin:12px 0;border:1px solid var(--line);border-radius:10px;padding:12px;font:14px Arial,sans-serif}.paste-box textarea{display:block;width:100%;min-height:150px;border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.5 Arial,sans-serif;resize:vertical}.paste-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}.paste-actions small{color:var(--muted)}.listing-grid{display:grid;gap:10px;margin-top:16px}.listing{display:grid;grid-template-columns:1fr auto;gap:8px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px}.listing h3{font-size:16px;margin:0 0 5px}.listing p{font-size:13px;color:var(--muted);margin:0}.listing-price{font-size:20px;font-weight:800;white-space:nowrap}.listing a{color:var(--green);font-weight:700;font-size:13px}.sources{padding:20px 0 52px}.section-title{font-size:22px;margin:0 0 16px}
     .chips{display:flex;flex-wrap:wrap;gap:10px}.chip{background:white;border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-weight:700}
     .notice{margin:0 0 60px;background:white;border:1px solid var(--line);border-radius:18px;padding:23px;display:flex;gap:16px;align-items:flex-start}
     .notice-icon{font-size:25px}.notice p{margin:4px 0 0;color:var(--muted)}
@@ -44,7 +44,7 @@
         <input id="query" type="search" data-i18n-placeholder="placeholder" placeholder="Например: робот-пылесос Xiaomi" aria-label="Название товара" required>
         <button type="submit" data-i18n="searchButton">Найти товар&nbsp; →</button>
       </form>
-      <div class="search-results" id="searchResults" aria-live="polite"><h2 data-i18n="resultsTitle">Поиск по магазинам</h2><p data-i18n="resultsNote">Откроются результаты Google только по выбранным магазинам. Это пока не единая выдача цен.</p><div class="result-links" id="resultLinks"></div><div class="paste-box" id="pasteBox"><strong data-i18n="pasteTitle">Добавить объявления OLX в список</strong><p data-i18n="pasteHelp">Скопируйте текст найденных объявлений на OLX и вставьте сюда. Мы выделим цены и отсортируем объявления.</p><textarea id="olxPaste" data-i18n-placeholder="pastePlaceholder" placeholder="Вставьте сюда скопированный текст со страницы OLX..."></textarea><div class="paste-actions"><button type="button" id="parseOlx" data-i18n="parseButton">Показать объявления</button><small id="parseStatus" aria-live="polite"></small></div><div class="listing-grid" id="listingGrid"></div></div></div>
+      <div class="search-results" id="searchResults" aria-live="polite"><h2 data-i18n="resultsTitle">Поиск по магазинам</h2><p data-i18n="resultsNote">Откроются результаты Google только по выбранным магазинам. Это пока не единая выдача цен.</p><div class="result-links" id="resultLinks"></div><div class="paste-box" id="pasteBox"><strong data-i18n="pasteTitle">Добавить объявления OLX в список</strong><p data-i18n="pasteHelp">Скопируйте текст найденных объявлений на OLX и вставьте сюда. Мы выделим цены и отсортируем объявления.</p><input id="olxUrl" type="url" data-i18n-placeholder="directUrlPlaceholder" placeholder="Вставьте прямую ссылку на объявление OLX (необязательно)" aria-label="Прямая ссылка на объявление OLX"><textarea id="olxPaste" data-i18n-placeholder="pastePlaceholder" placeholder="Вставьте сюда скопированный текст со страницы OLX..."></textarea><div class="paste-actions"><button type="button" id="parseOlx" data-i18n="parseButton">Показать объявления</button><small id="parseStatus" aria-live="polite"></small></div><div class="listing-grid" id="listingGrid"></div></div></div>
       <div class="hint" id="searchHint" data-i18n="hint">Введите товар и нажмите «Найти товар», чтобы открыть поиск по магазинам.</div>
     </div></section>
     <section class="sources"><div class="wrap">
@@ -73,7 +73,7 @@
         hint:"Введите товар и нажмите «Найти товар», чтобы открыть поиск по магазинам.",
         resultsTitle:"Результаты поиска по магазинам",
         resultsNote:"Откроется поиск OLX и поиск по другим магазинам. Чтобы собрать объявления в список, вставьте скопированный текст OLX ниже.",
-        pasteTitle:"Добавить объявления OLX в список", pasteHelp:"Скопируйте текст найденных объявлений на OLX и вставьте сюда. Мы выделим цены и отсортируем объявления.", pastePlaceholder:"Вставьте сюда скопированный текст со страницы OLX...", parseButton:"Показать объявления", parseEmpty:"Не удалось распознать объявления. Скопируйте больше текста со страницы OLX вместе с ценами в грн.", parseCount:"Найдено объявлений: {count}",
+        pasteTitle:"Добавить объявления OLX в список", pasteHelp:"Скопируйте текст найденных объявлений на OLX и вставьте сюда. Мы выделим цены и отсортируем объявления.", pastePlaceholder:"Вставьте сюда скопированный текст со страницы OLX...", parseButton:"Показать объявления", parseEmpty:"Не удалось распознать объявления. Скопируйте больше текста со страницы OLX вместе с ценами в грн.", parseCount:"Найдено объявлений: {count}", directUrlPlaceholder:"Вставьте прямую ссылку на объявление OLX (необязательно)", noDirectUrl:"Прямая ссылка не добавлена",
         listingLink:"Открыть объявление OLX", listingSearchLink:"Найти товар на OLX",
         sourcesTitle:"Источники, которые планируем подключить",
         otherStores:"Другие магазины",
@@ -97,7 +97,7 @@
         hint:"Введіть товар і натисніть «Знайти товар», щоб відкрити пошук у магазинах.",
         resultsTitle:"Результати пошуку в магазинах",
         resultsNote:"Відкриється пошук OLX та пошук в інших магазинах. Щоб зібрати оголошення в список, вставте скопійований текст OLX нижче.",
-        pasteTitle:"Додати оголошення OLX до списку", pasteHelp:"Скопіюйте текст знайдених оголошень на OLX і вставте сюди. Ми визначимо ціни та відсортуємо оголошення.", pastePlaceholder:"Вставте сюди скопійований текст зі сторінки OLX...", parseButton:"Показати оголошення", parseEmpty:"Не вдалося розпізнати оголошення. Скопіюйте більше тексту зі сторінки OLX разом із цінами в грн.", parseCount:"Знайдено оголошень: {count}",
+        pasteTitle:"Додати оголошення OLX до списку", pasteHelp:"Скопіюйте текст знайдених оголошень на OLX і вставте сюди. Ми визначимо ціни та відсортуємо оголошення.", pastePlaceholder:"Вставте сюди скопійований текст зі сторінки OLX...", parseButton:"Показати оголошення", parseEmpty:"Не вдалося розпізнати оголошення. Скопіюйте більше тексту зі сторінки OLX разом із цінами в грн.", parseCount:"Знайдено оголошень: {count}", directUrlPlaceholder:"Вставте пряме посилання на оголошення OLX (необов’язково)", noDirectUrl:"Пряме посилання не додано",
         listingLink:"Відкрити оголошення OLX", listingSearchLink:"Знайти товар на OLX",
         sourcesTitle:"Джерела, які плануємо підключити",
         otherStores:"Інші магазини",
@@ -121,7 +121,7 @@
         hint:"Enter a product and select “Find a product” to open searches across stores.",
         resultsTitle:"Store search results",
         resultsNote:"OLX search and searches on other stores will open. To collect listings into one list, paste the copied OLX text below.",
-        pasteTitle:"Add OLX listings to the list", pasteHelp:"Copy the text of the listings from OLX and paste it here. We will detect prices and sort the listings.", pastePlaceholder:"Paste copied text from the OLX page here...", parseButton:"Show listings", parseEmpty:"Could not recognize listings. Copy more text from the OLX page, including prices in UAH.", parseCount:"Listings found: {count}",
+        pasteTitle:"Add OLX listings to the list", pasteHelp:"Copy the text of the listings from OLX and paste it here. We will detect prices and sort the listings.", pastePlaceholder:"Paste copied text from the OLX page here...", parseButton:"Show listings", parseEmpty:"Could not recognize listings. Copy more text from the OLX page, including prices in UAH.", parseCount:"Listings found: {count}", directUrlPlaceholder:"Paste the direct OLX listing URL (optional)", noDirectUrl:"No direct listing URL added",
         listingLink:"Open OLX listing", listingSearchLink:"Search this item on OLX",
         sourcesTitle:"Sources we plan to connect",
         otherStores:"Other stores",
@@ -198,6 +198,15 @@
         if (Number.isFinite(price) && price > 0) priceRows.push({index, price});
       });
 
+      const manualUrlText = document.getElementById("olxUrl").value.trim();
+      let manualOlxUrl = "";
+      if (manualUrlText) {
+        try {
+          const parsedManualUrl = new URL(manualUrlText);
+          if (parsedManualUrl.protocol === "https:" && (parsedManualUrl.hostname === "olx.ua" || parsedManualUrl.hostname.endsWith(".olx.ua")) && /\\/d\\/uk\\/obyavlenie\\//.test(parsedManualUrl.pathname)) manualOlxUrl = parsedManualUrl.href;
+        } catch (_) {}
+      }
+
       const allOlxUrls = [...new Set((raw.match(/https?:\\/\\/(?:www\\.)?olx\\.ua\\/[^\\s)\\]>]+/ig) || []).map(value => {
         try {
           const parsed = new URL(value.replace(/[.,;]+$/, ""));
@@ -228,6 +237,7 @@
             if (parsed.hostname === "olx.ua" || parsed.hostname.endsWith(".olx.ua")) url = parsed.href;
           } catch (_) {}
         }
+        if (!url && priceRows.length === 1 && manualOlxUrl) url = manualOlxUrl;
         if (!url && priceRows.length === 1 && allOlxUrls.length === 1) url = allOlxUrls[0];
         if (!url && priceRows.length > 1 && allOlxUrls.length === priceRows.length) url = allOlxUrls[position];
         return {title: title || "Объявление OLX", price: row.price, meta, url};
@@ -252,14 +262,18 @@
         const meta = document.createElement("p");
         meta.textContent = item.meta;
         info.append(title, meta);
-        const link = document.createElement("a");
-        link.href = item.url || ("https://www.olx.ua/uk/list/q-" + encodeURIComponent(item.title.trim().replace(/\\s+/g, "-")) + "/");
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = item.url
-          ? translations[currentLanguage].listingLink
-          : translations[currentLanguage].listingSearchLink;
-        info.appendChild(link);
+        if (item.url) {
+          const link = document.createElement("a");
+          link.href = item.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = translations[currentLanguage].listingLink;
+          info.appendChild(link);
+        } else {
+          const noLink = document.createElement("p");
+          noLink.textContent = translations[currentLanguage].noDirectUrl;
+          info.appendChild(noLink);
+        }
         const price = document.createElement("div");
         price.className = "listing-price";
         price.textContent = item.price.toLocaleString("uk-UA") + " грн";
