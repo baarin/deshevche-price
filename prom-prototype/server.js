@@ -372,7 +372,14 @@ const server = http.createServer(async (req, res) => {
       candidateCount: result.candidateCount,
       checkedProductPages: result.checkedProductPages,
       failedProductPages: result.failedProductPages,
-      products: result.products,
+      products: result.products.map(({ title, price, currency, url, seller, availability }) => ({
+        title,
+        price,
+        currency,
+        url,
+        seller,
+        availability
+      })),
       resultCount: result.products.length,
       note
     });
