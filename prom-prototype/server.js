@@ -120,6 +120,14 @@ function inspectJsonLd(html) {
   return { scriptsCount: scripts.length, diagnostics, products };
 }
 
+function isLikelyMismatch(product, query) {
+  const q = String(query || "").toLowerCase();
+  const text = ((product.title || "") + " " + (product.description || "")).toLowerCase();
+  const asksForApple = /\\b(iphone|айфон|apple)\\b/i.test(q);
+  if (!asksForApple) return false;
+  return /android|копі[яї]|копия|імітац|имитац|реплік|реплик|муляж|якісна копія|гарейна копія/i.test(text);
+}
+
 async function searchProm(query) {
   const url = new URL(SEARCH_BASE);
   url.searchParams.set("search_term", query);
@@ -188,7 +196,12 @@ async function searchProm(query) {
   const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   const unique = new Map();
   const detailProducts = detailChecks.flatMap(check => check.productsParsed || []);
+  const rejectedProducts = [];
   for (const product of [...listing.products, ...detailProducts]) {
+    if (isLikelyMismatch(product, query)) {
+      rejectedProducts.push({ title: product.title, price: product.price, url: product.url, reason: "Possible imitation or Android-based copy of an Apple product" });
+      continue;
+    }
     const key = product.url;
     if (!unique.has(key) || product.price < unique.get(key).price) unique.set(key, product);
   }
@@ -205,6 +218,7 @@ async function searchProm(query) {
     itemListCount: listItems.length,
     firstListItems: listItems.slice(0, 3),
     productPageChecks: detailChecks,
+    rejectedProducts,
     products: [...unique.values()].sort((a, b) => a.price - b.price).slice(0, 30)
   };
 }
