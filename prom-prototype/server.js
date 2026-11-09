@@ -314,7 +314,7 @@ async function searchProm(query) {
   const uncertainProducts = [];
   const classifiedUrls = new Set();
   const allProducts = detailChecks.flatMap(check => check?.productsParsed || []);
-  for (const product of [...(firstListing?.products || []), ...allProducts]) {
+  for (const product of allProducts) {
     const classification = classifyProduct(product, query);
     const key = product.url;
     if (classification.status !== "match") {
