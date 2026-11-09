@@ -91,3 +91,17 @@ test("rejects SIM unlock cards and R-Sim accessories for a phone query", () => {
     assert.equal(classifyProduct({ title }, "iPhone 17 Pro").status, "reject", title);
   }
 });
+
+test("rejects R-Sim and WELLSIM even when the phone model range is written as 6-17", () => {
+  const result = classifyProduct({
+    title: "Смарт-карта R-Sim WELLSIM PRO для iPhone 6-17 Pro / Pro Max IOS 18.7.1 + 26 з підтримкою VoLTE та LTE",
+    description: "WELLSIM eX, чіп для iPhone, чіп для розблокування iPhone, заблокованих на іноземних операторів"
+  }, "iPhone 17 Pro");
+  assert.equal(result.status, "reject");
+  assert.match(result.reason, /SIM-карта або чип/i);
+});
+
+test("does not reject ordinary iPhone SIM or eSIM specifications", () => {
+  assert.equal(classifyProduct({ title: "Apple iPhone 17 Pro 256GB eSIM Silver" }, "iPhone 17 Pro").status, "match");
+  assert.equal(classifyProduct({ title: "Apple iPhone 17 Pro 256GB Dual SIM" }, "iPhone 17 Pro").status, "match");
+});
