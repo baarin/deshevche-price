@@ -73,3 +73,10 @@ test("rejects obvious imitations", () => {
 test("does not confirm a title missing query terms", () => {
   assert.equal(classifyProduct({ title: "Apple iPhone 15 128GB" }, "iPhone 15 Pro").status, "uncertain");
 });
+
+test("rejects Cyrillic accessory titles before the requested phone model", () => {
+  assert.equal(classifyProduct({ title: "Захисне скло 9D iPhone 17" }, "iPhone 17").status, "reject");
+  assert.equal(classifyProduct({ title: "Захисне скло для iPhone 17 загартоване скло айфон 17" }, "iPhone 17").status, "reject");
+  assert.equal(classifyProduct({ title: "Чохол для iPhone 17 з MagSafe чорний матовий" }, "iPhone 17").status, "reject");
+  assert.equal(classifyProduct({ title: "Зарядний пристрій для Apple iPhone 17" }, "iPhone 17").status, "reject");
+});
