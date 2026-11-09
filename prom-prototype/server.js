@@ -244,17 +244,35 @@ async function searchProm(query) {
           const usePageTitlePrice = Boolean(
             pageTitlePrice && pageTitlePrice.currency === product.currency
           );
+          const useHtmlPrice = Boolean(
+            htmlProductPrice?.price && htmlProductPrice.currency === "UAH"
+          );
+          const selectedPrice = useHtmlPrice
+            ? htmlProductPrice.price
+            : usePageTitlePrice
+              ? pageTitlePrice.price
+              : product.price;
+          const selectedPriceSource = useHtmlPrice
+            ? "html-data-qaprice"
+            : usePageTitlePrice
+              ? "page-title"
+              : "json-ld";
           return {
             ...product,
-            price: usePageTitlePrice ? pageTitlePrice.price : product.price,
+            price: selectedPrice,
+            currency: useHtmlPrice ? htmlProductPrice.currency : product.currency,
             jsonLdPrice,
             pageTitlePrice: pageTitlePrice?.price ?? null,
             htmlProductPrice: htmlProductPrice?.price ?? null,
             htmlProductPriceSource: htmlProductPrice?.source ?? null,
             htmlProductPriceIssue: htmlProductPrice?.reason ?? null,
-            priceSource: usePageTitlePrice ? "page-title" : "json-ld",
+            priceSource: selectedPriceSource,
             priceMismatch: Boolean(
-              usePageTitlePrice && Number(jsonLdPrice) !== Number(pageTitlePrice.price)
+              (useHtmlPrice && (
+                Number(jsonLdPrice) !== Number(htmlProductPrice.price) ||
+                (pageTitlePrice && Number(pageTitlePrice.price) !== Number(htmlProductPrice.price))
+              )) ||
+              (!useHtmlPrice && usePageTitlePrice && Number(jsonLdPrice) !== Number(pageTitlePrice.price))
             ),
             listingPosition: item.position,
             listingPage: item.listingPage,
