@@ -22,7 +22,7 @@
     .searchbox{display:flex;gap:10px;padding:9px;background:white;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 35px #183c2910;max-width:780px}
     input{min-width:0;flex:1;border:0;outline:0;padding:12px 13px;font:inherit}
     button{border:0;border-radius:11px;background:var(--green);color:white;padding:13px 22px;font:700 15px inherit;cursor:pointer}
-    button:hover{background:#10583d}.hint{color:#78847e;font-size:13px;margin:11px 4px}
+    button:hover{background:#10583d}.hint{color:#78847e;font-size:13px;margin:11px 4px}.search-results{margin-top:22px}.search-results h2{font-size:20px}.result-links{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.result-link{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--green);font-weight:700;text-decoration:none}.result-link:hover{border-color:var(--green);text-decoration:underline}
     .paste-box{display:none;margin:18px 0 8px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}.paste-box textarea{display:block;width:100%;min-height:150px;border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.5 Arial,sans-serif;resize:vertical}.paste-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}.paste-actions small{color:var(--muted)}.listing-grid{display:grid;gap:10px;margin-top:16px}.listing{display:grid;grid-template-columns:1fr auto;gap:8px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px}.listing h3{font-size:16px;margin:0 0 5px}.listing p{font-size:13px;color:var(--muted);margin:0}.listing-price{font-size:20px;font-weight:800;white-space:nowrap}.listing a{color:var(--green);font-weight:700;font-size:13px}.sources{padding:20px 0 52px}.section-title{font-size:22px;margin:0 0 16px}
     .chips{display:flex;flex-wrap:wrap;gap:10px}.chip{background:white;border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-weight:700}
     .notice{margin:0 0 60px;background:white;border:1px solid var(--line);border-radius:18px;padding:23px;display:flex;gap:16px;align-items:flex-start}
@@ -185,13 +185,13 @@
 
     document.getElementById("parseOlx").addEventListener("click", function() {
       const raw = document.getElementById("olxPaste").value || "";
-      const lines = raw.split(/\\r?\\n/).map(x => x.trim()).filter(Boolean);
-      const pricePattern = /(?:^|\\s)(\\d{1,3}(?:[\\s\\u00a0\\u202f]?\\d{3})+|\\d+)\\s*грн\\.?/i;
+      const lines = raw.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+      const pricePattern = /(?:^|\s)(\d{1,3}(?:[\s\u00a0\u202f]?\d{3})+|\d+)\s*грн\.?/i;
       const priceRows = [];
       lines.forEach((line, index) => {
         const match = line.match(pricePattern);
         if (!match) return;
-        const price = Number(match[1].replace(/[\\s\\u00a0\\u202f]/g, ""));
+        const price = Number(match[1].replace(/[\s\u00a0\u202f]/g, ""));
         if (Number.isFinite(price) && price > 0) priceRows.push({index, price});
       });
 
@@ -200,17 +200,17 @@
         const nextBoundary = position + 1 < priceRows.length ? priceRows[position + 1].index : lines.length;
         const blockStart = Math.max(previousBoundary, row.index - 10);
         const blockEnd = Math.min(nextBoundary, row.index + 5);
-        const block = lines.slice(blockStart, blockEnd);
         let title = "";
         for (let i = row.index - 1; i >= blockStart; i--) {
           const candidate = lines[i];
-          if (/^https?:\\/\\//i.test(candidate) || /^(image|svg|зберегти|сохранить|save|нове|б\\/у)$/i.test(candidate)) continue;
+          if (/^https?:\/\//i.test(candidate) || /^(image|svg|зберегти|сохранить|save|нове|б\/у)$/i.test(candidate)) continue;
           if (candidate.length > 5 && !pricePattern.test(candidate)) { title = candidate; break; }
         }
         const meta = lines.slice(row.index + 1, blockEnd)
-          .filter(x => !/^https?:\\/\\//i.test(x) && !/^svg$/i.test(x))
+          .filter(x => !/^https?:\/\//i.test(x) && !/^svg$/i.test(x))
           .join(" · ");
-        const urls = block.join(" ").match(/https?:\\/\\/(?:www\\.)?olx\\.ua\\/[^\\s)\\]>]+/ig) || [];
+        const block = lines.slice(blockStart, blockEnd);
+        const urls = block.join(" ").match(/https?:\/\/(?:www\.)?olx\.ua\/[^\s)\]>]+/ig) || [];
         let url = "";
         if (urls.length === 1) {
           try {
