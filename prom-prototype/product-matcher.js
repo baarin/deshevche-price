@@ -18,6 +18,8 @@ const BLOCKED_DEVICE_PATTERN = /icloud\s*[- ]?lock|icloud\s*заблок|\blocke
 // These phrases are warning signs, not proof of a counterfeit. Keep such offers
 // out of confirmed matches but preserve them for manual review.
 const LOW_CONFIDENCE_LISTING_PATTERN = /высокое\s+качество|хорошее\s+качество|отличное\s+качество|висока\s+якість|хороша\s+якість|відмінна\s+якість|уточняйте\s+наличие|уточнюйте\s+наявність/i;
+// Dedicated SIM-unlock accessory detection. Do not match ordinary SIM/eSIM phone specs.
+const SIM_UNLOCK_ACCESSORY_PATTERN = /(?:\br\s*[- ]?\s*sim\b|\bwellsim\b|\bsim\s+interposer\b|\bunlock\s+chip\b|(?:смарт[- ]?карта|sim[- ]?карта|sim\s+card)[^.!?]{0,100}(?:разблок|unlock)|(?:чип|чіп)[^.!?]{0,80}(?:разблок|розблок|unlock)|(?:разблокировк\w*|розблокуванн\w*)[^.!?]{0,80}(?:чип|чіп|sim))/i;
 
 function normalizeWords(value) {
   return String(value || "")
@@ -52,6 +54,10 @@ function classifyProduct(product, query) {
 
   if (IMITATION_PATTERN.test(combinedText)) {
     return { status: "reject", reason: "В названии или описании есть признаки копии, имитации или подделки" };
+  }
+
+  if (SIM_UNLOCK_ACCESSORY_PATTERN.test(title + " " + description)) {
+    return { status: "reject", reason: "Это SIM-карта или чип для обхода блокировки, а не искомое устройство" };
   }
 
   if (BLOCKED_DEVICE_PATTERN.test(title + " " + description)) {
