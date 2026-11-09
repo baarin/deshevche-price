@@ -16,6 +16,9 @@ const VARIANT_MARKERS = new Set([
 
 const IMITATION_PATTERN = /android|копі[яї]|копия|імітац|имитац|реплік|реплик|муляж|підробк|подделк|аналог\s+під\s+виглядом|аналог\s+под\s+видом/i;
 const BLOCKED_DEVICE_PATTERN = /icloud\s*[- ]?lock|icloud\s*заблок|\blocked\b|\bзаблокован\w*|\bзаблокирова\w*|на\s+запчасти|на\s+запчастин/i;
+// These phrases are warning signs, not proof of a counterfeit. Keep such offers
+// out of confirmed matches but preserve them for manual review.
+const LOW_CONFIDENCE_LISTING_PATTERN = /высокое\s+качество|хорошее\s+качество|отличное\s+качество|висока\s+якість|хороша\s+якість|відмінна\s+якість|уточняйте\s+наличие|уточнюйте\s+наявність/i;
 
 function normalizeWords(value) {
   return String(value || "")
@@ -56,6 +59,10 @@ function classifyProduct(product, query) {
     return { status: "reject", reason: "Устройство заблокировано или продаётся на запчасти" };
   }
 
+  if (LOW_CONFIDENCE_LISTING_PATTERN.test(title + " " + description)) {
+    return { status: "uncertain", reason: "В объявлении есть предупреждающие формулировки о качестве или необходимости уточнить наличие" };
+  }
+
   // Only treat a title as an accessory when its product-type marker occurs
   // before the requested model phrase. A battery/charger mention after the
   // phone model can describe the phone's condition or an included extra.
@@ -92,7 +99,7 @@ function classifyProduct(product, query) {
     }
   }
 
-  return { status: "match", reason: "Название соответствует запросу; признаков аксессуара, блокировки или другой версии не найдено" };
+  return { status: "match", reason: "Название соответствует запросу; явных признаков аксессуара, блокировки или другой версии не найдено" };
 }
 
 module.exports = { normalizeWords, classifyProduct };
