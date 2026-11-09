@@ -351,13 +351,30 @@ const server = http.createServer(async (req, res) => {
   if (query.length > 120) return send(res, 400, { ok: false, error: "Query is too long (max 120 characters)" });
   try {
     const result = await searchProm(query);
+    const note = result.products.length
+      ? "Parsed public structured product data; verify titles and prices before using in the main site."
+      : "No suitable structured product data was found among the checked public product pages. No CAPTCHA, login, or anti-bot challenge is bypassed.";
+    const debug = url.searchParams.get("debug") === "1";
+    if (debug) {
+      return send(res, 200, {
+        ok: true,
+        ...result,
+        resultCount: result.products.length,
+        note
+      });
+    }
     return send(res, 200, {
       ok: true,
-      ...result,
+      source: result.source,
+      query: result.query,
+      checkedAt: result.checkedAt,
+      pagesChecked: result.pagesChecked,
+      candidateCount: result.candidateCount,
+      checkedProductPages: result.checkedProductPages,
+      failedProductPages: result.failedProductPages,
+      products: result.products,
       resultCount: result.products.length,
-      note: result.products.length
-        ? "Parsed public structured product data; verify titles and prices before using in the main site."
-        : "No suitable structured product data was found among the checked public product pages. No CAPTCHA, login, or anti-bot challenge is bypassed."
+      note
     });
   } catch (error) {
     return send(res, 502, {
