@@ -84,6 +84,37 @@ async function fetchHtml(url) {
   }
 }
 
+function inspectVisiblePriceMarkup(html) {
+  const candidates = [];
+  const patterns = [
+    /data-qaid=["']([^"']*price[^"']*)["']/gi,
+    /itemprop=["']price["']/gi,
+    /property=["']product:price:amount["']/gi
+  ];
+
+  for (const pattern of patterns) {
+    for (const match of html.matchAll(pattern)) {
+      const index = match.index || 0;
+      const snippet = html.slice(Math.max(0, index - 180), Math.min(html.length, index + 520));
+      const textPreview = snippet
+        .replace(/<script[\\s\\S]*?<\\/script>/gi, " ")
+        .replace(/<style[\\s\\S]*?<\\/style>/gi, " ")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;|&#160;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/\\s+/g, " ")
+        .trim()
+        .slice(0, 220);
+      candidates.push({
+        marker: match[1] || match[0],
+        textPreview
+      });
+      if (candidates.length >= 8) return candidates;
+    }
+  }
+  return candidates;
+}
+
 function inspectJsonLd(html) {
   const scripts = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
   const diagnostics = [];
@@ -233,6 +264,7 @@ async function searchProm(query) {
           httpStatus: detail.response.status,
           pageTitle,
           pageTitlePrice: pageTitlePrice?.price ?? null,
+          priceMarkupDiagnostics: inspectVisiblePriceMarkup(detail.html),
           parsedJsonLdBlocks: inspected.scriptsCount,
           productsParsed: parsedProducts,
           error: detail.response.ok ? null : "Product page returned HTTP " + detail.response.status
