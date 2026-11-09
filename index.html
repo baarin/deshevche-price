@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10251f">
+  <title>ДЕШЕВШЕ — сравнение цен в Украине</title>
+  <style>
+    :root{color-scheme:light;--ink:#17251f;--muted:#66736d;--line:#e5ebe7;--green:#176b4b;--lime:#d8f36a;--paper:#f7f9f6}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 Inter,Arial,sans-serif}
+    .wrap{width:min(1100px,calc(100% - 36px));margin:auto}
+    header{background:#10251f;color:white;padding:19px 0}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .logo{font-size:23px;font-weight:900;letter-spacing:.8px}.logo span{color:var(--lime)}
+    .nav small{color:#c5d2cb}
+    .hero{padding:68px 0 48px;background:radial-gradient(ellipse at 80% 0%,#e8f5d6 0,transparent 48%)}
+    .eyebrow{display:inline-flex;background:#e8f4df;color:#276142;border-radius:30px;padding:6px 12px;font-size:13px;font-weight:700}
+    h1{font-size:clamp(36px,6vw,62px);line-height:1.04;letter-spacing:-2px;margin:18px 0 14px;max-width:760px}
+    .lead{color:var(--muted);font-size:18px;max-width:650px;margin:0 0 28px}
+    .searchbox{display:flex;gap:10px;padding:9px;background:white;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 35px #183c2910;max-width:780px}
+    input{min-width:0;flex:1;border:0;outline:0;padding:12px 13px;font:inherit}
+    button{border:0;border-radius:11px;background:var(--green);color:white;padding:13px 22px;font:700 15px inherit;cursor:pointer}
+    button:hover{background:#10583d}.hint{color:#78847e;font-size:13px;margin:11px 4px}
+    .sources{padding:20px 0 52px}.section-title{font-size:22px;margin:0 0 16px}
+    .chips{display:flex;flex-wrap:wrap;gap:10px}.chip{background:white;border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-weight:700}
+    .notice{margin:0 0 60px;background:white;border:1px solid var(--line);border-radius:18px;padding:23px;display:flex;gap:16px;align-items:flex-start}
+    .notice-icon{font-size:25px}.notice p{margin:4px 0 0;color:var(--muted)}
+    .bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-bottom:64px}
+    .card{background:white;border:1px solid var(--line);border-radius:18px;padding:23px}.card h2{font-size:20px;margin:0 0 7px}.card p{color:var(--muted);margin:0}
+    footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-size:13px}
+    @media(max-width:650px){.hero{padding:48px 0 34px}.searchbox{flex-direction:column}.searchbox button{width:100%}.bottom{grid-template-columns:1fr}.notice{margin-bottom:42px}.nav small{font-size:11px}}
+  </style>
+</head>
+<body>
+  <header><div class="wrap nav"><div class="logo">ДЕШЕВ<span>ШЕ</span></div><small>Поиск выгодных цен в Украине</small></div></header>
+  <main>
+    <section class="hero"><div class="wrap">
+      <span class="eyebrow">Сравнение цен в одном поиске</span>
+      <h1>Найди нужный товар.<br>Плати меньше.</h1>
+      <p class="lead">Ищем предложения украинских интернет-магазинов и площадок объявлений, чтобы тебе было проще сравнить цены.</p>
+      <form class="searchbox" id="searchForm">
+        <input id="query" type="search" placeholder="Например: робот-пылесос Xiaomi" aria-label="Название товара" required>
+        <button type="submit">Найти товар&nbsp; →</button>
+      </form>
+      <div class="hint" id="searchHint">Поиск и подключение источников цен находятся в разработке. Сейчас это первая версия сайта.</div>
+    </div></section>
+    <section class="sources"><div class="wrap">
+      <h2 class="section-title">Источники, которые планируем подключить</h2>
+      <div class="chips"><span class="chip">Rozetka</span><span class="chip">Prom.ua</span><span class="chip">Comfy</span><span class="chip">Foxtrot</span><span class="chip">OLX</span><span class="chip">Другие магазины</span></div>
+    </div></section>
+    <div class="wrap">
+      <section class="notice"><div class="notice-icon">🔎</div><div><strong>Сравниваем сопоставимые товары</strong><p>Будем учитывать модель, характеристики и состояние товара. Предложения OLX планируем показывать отдельно от новых товаров из магазинов.</p></div></section>
+      <section class="bottom">
+        <article class="card"><h2>❤️ Поддержать проект</h2><p>Поиск будет бесплатным. Позже добавим добровольную поддержку проекта без обязательных платежей.</p></article>
+        <article class="card"><h2>⭐ Отзывы пользователей</h2><p>Добавим возможность оценить сайт и оставить отзыв после запуска поиска.</p></article>
+      </section>
+    </div>
+  </main>
+  <footer><div class="wrap">ДЕШЕВШЕ · Проект в разработке · Украина</div></footer>
+  <script>
+    document.getElementById('searchForm').addEventListener('submit',function(e){
+      e.preventDefault();
+      const q=document.getElementById('query').value.trim();
+      if(q) document.getElementById('searchHint').textContent='Запрос «'+q+'» принят. Подключение реального поиска по магазинам — следующий этап разработки.';
+    });
+  </script>
+</body>
+</html>
