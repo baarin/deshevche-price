@@ -120,12 +120,67 @@ function inspectJsonLd(html) {
   return { scriptsCount: scripts.length, diagnostics, products };
 }
 
+function normalizeWords(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/ё/g, "е")
+    .replace(/[^a-zа-яіїєґ0-9+]+/gi, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+const ACCESSORY_TERMS = new Set([
+  "case", "cover", "чехол", "чохол", "кейс", "накладка",
+  "charger", "charging", "зарядка", "зарядний", "адаптер",
+  "cable", "кабель", "шнур", "провод",
+  "screen", "скло", "стекло", "пленка", "плівка", "защитное", "захисне",
+  "battery", "аккумулятор", "батарея",
+  "replacement", "запчасть", "запчастина", "деталь", "шлейф",
+  "ремешок", "ремінець", "strap", "earpads", "амбушюры", "амбушури",
+  "насадки", "держатель", "тримач", "подставка", "підставка"
+]);
+
+const VARIANT_MARKERS = new Set([
+  "turbo", "plus", "max", "mini", "lite", "ultra", "neo", "se",
+  "pro+", "v2", "v3", "v4", "v5", "mk2", "mk3", "2024", "2025", "2026"
+]);
+
 function isLikelyMismatch(product, query) {
-  const q = String(query || "").toLowerCase();
-  const text = ((product.title || "") + " " + (product.description || "")).toLowerCase();
-  const asksForApple = /\b(iphone|айфон|apple)\b/i.test(q);
-  if (!asksForApple) return false;
-  return /android|копі[яї]|копия|імітац|имитац|реплік|реплик|муляж|якісна копія|гарейна копія/i.test(text);
+  const queryWords = normalizeWords(query);
+  const titleWords = normalizeWords(product.title);
+  const titleText = titleWords.join(" ");
+  const description = String(product.description || "").toLowerCase();
+
+  if (!queryWords.length || !titleWords.length) {
+    return { reject: true, reason: "Missing query terms or product title" };
+  }
+
+  const missing = queryWords.filter(word => !titleWords.includes(word));
+  if (missing.length) {
+    return { reject: true, reason: "Product title does not contain query terms: " + missing.join(", ") };
+  }
+
+  const accessoryWords = titleWords.filter(word => ACCESSORY_TERMS.has(word));
+  if (accessoryWords.length) {
+    return { reject: true, reason: "Likely accessory or spare part: " + accessoryWords.join(", ") };
+  }
+
+  const phrase = queryWords.join(" ");
+  const phraseIndex = titleText.indexOf(phrase);
+  if (phraseIndex >= 0) {
+    const afterPhrase = titleText.slice(phraseIndex + phrase.length).trim().split(/\s+/).filter(Boolean);
+    const marker = afterPhrase.find(word => VARIANT_MARKERS.has(word) || /^v\d+$/i.test(word));
+    if (marker) {
+      return { reject: true, reason: "Possible different model or edition: " + marker };
+    }
+  }
+
+  if (/android|копі[яї]|копия|імітац|имитац|реплік|реплик|муляж|підробк|подделк/i.test(titleText + " " + description)) {
+    return { reject: true, reason: "Possible imitation, counterfeit, or replica" };
+  }
+
+  return { reject: false, reason: null };
 }
 
 async function searchProm(query) {
@@ -247,14 +302,15 @@ async function searchProm(query) {
   const rejectedUrls = new Set();
   const allProducts = detailChecks.flatMap(check => check?.productsParsed || []);
   for (const product of [...(firstListing?.products || []), ...allProducts]) {
-    if (isLikelyMismatch(product, query)) {
+    const matchCheck = isLikelyMismatch(product, query);
+    if (matchCheck.reject) {
       if (!rejectedUrls.has(product.url)) {
         rejectedUrls.add(product.url);
         rejectedProducts.push({
           title: product.title,
           price: product.price,
           url: product.url,
-          reason: "Possible imitation or Android-based copy of an Apple product"
+          reason: matchCheck.reason
         });
       }
       continue;
