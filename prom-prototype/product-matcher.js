@@ -1,9 +1,12 @@
 const ACCESSORY_TITLE_PATTERNS = [
-  /^(?:чехол|чохол|кейс|case|cover|накладка|защитное стекло|захисне скло|стекло|скло|пленка|плівка)\b/i,
-  /^(?:зарядка|зарядний пристрій|зарядное устройство|charger|charging adapter|адаптер питания|кабель|cable|шнур)\b/i,
-  /^(?:наушники|навушники|earpods|earbuds|headphones|headset|гарнитура|гарнітура|амбушюры|амбушури)\b/i,
-  /^(?:аккумулятор|батарея|battery|дисплей|экран|display|screen|шлейф|запчасть|запчастина|деталь|ремешок|ремінець|strap|держатель|тримач|подставка|підставка)\b/i,
-  /\b(?:для|for)\s+(?:apple\s+)?iphone\s+\d+/i
+  // The product type must appear before the requested model in the title.
+  // This catches listings such as "Apple EarPods ... for iPhone 15" and
+  // "Pitaka case for iPhone 15 Plus", without rejecting a phone whose
+  // description/title mentions a replaced battery after the model name.
+  /\\b(?:чехол|чохол|кейс|case|cover|накладка|захисне\\s+скло|защитное\\s+стекло|стекло|скло|пленка|плівка|screen\\s+protector|protector)\\b/i,
+  /\\b(?:зарядка|зарядний\\s+пристрій|зарядное\\s+устройство|charger|charging\\s+adapter|адаптер\\s+питания|кабель|cable|шнур)\\b/i,
+  /\\b(?:наушники|навушники|earpods|earbuds|headphones|headset|гарнитура|гарнітура|амбушюры|амбушури)\\b/i,
+  /\\b(?:аккумулятор|батарея|battery|дисплей|экран|display|screen|шлейф|запчасть|запчастина|деталь|ремешок|ремінець|strap|держатель|тримач|подставка|підставка)\\b/i
 ];
 
 const VARIANT_MARKERS = new Set([
@@ -53,10 +56,17 @@ function classifyProduct(product, query) {
     return { status: "reject", reason: "Устройство заблокировано или продаётся на запчасти" };
   }
 
-  // Accessory terms in a phone's description (for example, a replaced battery)
-  // must not disqualify the phone. Detect accessory listings from the title itself.
-  const accessoryPattern = ACCESSORY_TITLE_PATTERNS.find(pattern => pattern.test(title.trim()));
-  if (accessoryPattern) {
+  // Only treat a title as an accessory when its product-type marker occurs
+  // before the requested model phrase. A battery/charger mention after the
+  // phone model can describe the phone's condition or an included extra.
+  const titlePhraseForAccessory = titleWords.join(" ");
+  const queryPhraseForAccessory = queryWords.join(" ");
+  const modelPosition = titlePhraseForAccessory.indexOf(queryPhraseForAccessory);
+  const accessoryBeforeModel = modelPosition >= 0 && ACCESSORY_TITLE_PATTERNS.some(pattern => {
+    const match = pattern.exec(titlePhraseForAccessory);
+    return match && match.index < modelPosition;
+  });
+  if (accessoryBeforeModel) {
     return { status: "reject", reason: "Это аксессуар или отдельная запчасть, а не искомое устройство" };
   }
 
