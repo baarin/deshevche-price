@@ -1,6 +1,7 @@
 const http = require("node:http");
 const { classifyProduct } = require("./product-matcher");
 const { parsePageTitlePrice } = require("./price-parser");
+const { parsePromHtmlPrice } = require("./html-price-parser");
 
 const PORT = Number(process.env.PORT || 10000);
 const HOST = "0.0.0.0";
@@ -237,6 +238,7 @@ async function searchProm(query) {
         const titleMatch = detail.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
         const pageTitle = titleMatch ? titleMatch[1].replace(/\s+/g, " ").trim() : null;
         const pageTitlePrice = parsePageTitlePrice(pageTitle);
+        const htmlProductPrice = parsePromHtmlPrice(detail.html);
         const parsedProducts = inspected.products.map(product => {
           const jsonLdPrice = product.price;
           const usePageTitlePrice = Boolean(
@@ -247,6 +249,9 @@ async function searchProm(query) {
             price: usePageTitlePrice ? pageTitlePrice.price : product.price,
             jsonLdPrice,
             pageTitlePrice: pageTitlePrice?.price ?? null,
+            htmlProductPrice: htmlProductPrice?.price ?? null,
+            htmlProductPriceSource: htmlProductPrice?.source ?? null,
+            htmlProductPriceIssue: htmlProductPrice?.reason ?? null,
             priceSource: usePageTitlePrice ? "page-title" : "json-ld",
             priceMismatch: Boolean(
               usePageTitlePrice && Number(jsonLdPrice) !== Number(pageTitlePrice.price)
@@ -264,6 +269,7 @@ async function searchProm(query) {
           httpStatus: detail.response.status,
           pageTitle,
           pageTitlePrice: pageTitlePrice?.price ?? null,
+          htmlProductPrice,
           priceMarkupDiagnostics: inspectVisiblePriceMarkup(detail.html),
           parsedJsonLdBlocks: inspected.scriptsCount,
           productsParsed: parsedProducts,
