@@ -165,7 +165,12 @@
         const a = document.createElement("a");
         a.className = "result-link";
         a.textContent = store.name + "  →";
-        a.href = "https://www.google.com/search?q=" + encodeURIComponent("site:" + store.domain + " " + q);
+        if (store.domain === "olx.ua") {
+          const slug = q.trim().replace(/\s+/g, "-");
+          a.href = "https://www.olx.ua/uk/list/q-" + encodeURIComponent(slug) + "/";
+        } else {
+          a.href = "https://www.google.com/search?q=" + encodeURIComponent("site:" + store.domain + " " + q);
+        }
         a.target = "_blank";
         a.rel = "noopener noreferrer";
         links.appendChild(a);
