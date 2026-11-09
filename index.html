@@ -12,7 +12,8 @@
     header{background:#10251f;color:white;padding:19px 0}
     .nav{display:flex;align-items:center;justify-content:space-between;gap:18px}
     .logo{font-size:23px;font-weight:900;letter-spacing:.8px}.logo span{color:var(--lime)}
-    .nav small{color:#c5d2cb}
+    .nav-right{display:flex;align-items:center;gap:16px}.nav small{color:#c5d2cb}
+    .lang-select{background:#1b382e;color:white;border:1px solid #587064;border-radius:9px;padding:8px 10px;font:inherit;font-size:14px}
     .hero{padding:68px 0 48px;background:radial-gradient(ellipse at 80% 0%,#e8f5d6 0,transparent 48%)}
     .eyebrow{display:inline-flex;background:#e8f4df;color:#276142;border-radius:30px;padding:6px 12px;font-size:13px;font-weight:700}
     h1{font-size:clamp(36px,6vw,62px);line-height:1.04;letter-spacing:-2px;margin:18px 0 14px;max-width:760px}
@@ -28,41 +29,121 @@
     .bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-bottom:64px}
     .card{background:white;border:1px solid var(--line);border-radius:18px;padding:23px}.card h2{font-size:20px;margin:0 0 7px}.card p{color:var(--muted);margin:0}
     footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-size:13px}
-    @media(max-width:650px){.hero{padding:48px 0 34px}.searchbox{flex-direction:column}.searchbox button{width:100%}.bottom{grid-template-columns:1fr}.notice{margin-bottom:42px}.nav small{font-size:11px}}
+    @media(max-width:650px){.hero{padding:48px 0 34px}.searchbox{flex-direction:column}.searchbox button{width:100%}.bottom{grid-template-columns:1fr}.notice{margin-bottom:42px}.nav small{font-size:11px}.nav-right{gap:8px;flex-direction:column;align-items:flex-end}.lang-select{padding:5px 8px}}
   </style>
 </head>
 <body>
-  <header><div class="wrap nav"><div class="logo">ДЕШЕВ<span>ШЕ</span></div><small>Поиск выгодных цен в Украине</small></div></header>
+  <header><div class="wrap nav"><div class="logo">ДЕШЕВ<span>ШЕ</span></div><div class="nav-right"><small data-i18n="tagline">Поиск выгодных цен в Украине</small><select class="lang-select" id="languageSelect" aria-label="Language"><option value="ru">Русский</option><option value="uk">Українська</option><option value="en">English</option></select></div></div></header>
   <main>
     <section class="hero"><div class="wrap">
-      <span class="eyebrow">Сравнение цен в одном поиске</span>
-      <h1>Найди нужный товар.<br>Плати меньше.</h1>
-      <p class="lead">Ищем предложения украинских интернет-магазинов и площадок объявлений, чтобы тебе было проще сравнить цены.</p>
+      <span class="eyebrow" data-i18n="eyebrow">Сравнение цен в одном поиске</span>
+      <h1 data-i18n="headline">Найди нужный товар.<br>Плати меньше.</h1>
+      <p class="lead" data-i18n="lead">Ищем предложения украинских интернет-магазинов и площадок объявлений, чтобы тебе было проще сравнить цены.</p>
       <form class="searchbox" id="searchForm">
-        <input id="query" type="search" placeholder="Например: робот-пылесос Xiaomi" aria-label="Название товара" required>
-        <button type="submit">Найти товар&nbsp; →</button>
+        <input id="query" type="search" data-i18n-placeholder="placeholder" placeholder="Например: робот-пылесос Xiaomi" aria-label="Название товара" required>
+        <button type="submit" data-i18n="searchButton">Найти товар&nbsp; →</button>
       </form>
-      <div class="hint" id="searchHint">Поиск и подключение источников цен находятся в разработке. Сейчас это первая версия сайта.</div>
+      <div class="hint" id="searchHint" data-i18n="hint">Поиск и подключение источников цен находятся в разработке. Сейчас это первая версия сайта.</div>
     </div></section>
     <section class="sources"><div class="wrap">
-      <h2 class="section-title">Источники, которые планируем подключить</h2>
-      <div class="chips"><span class="chip">Rozetka</span><span class="chip">Prom.ua</span><span class="chip">Comfy</span><span class="chip">Foxtrot</span><span class="chip">OLX</span><span class="chip">Другие магазины</span></div>
+      <h2 class="section-title" data-i18n="sourcesTitle">Источники, которые планируем подключить</h2>
+      <div class="chips"><span class="chip">Rozetka</span><span class="chip">Prom.ua</span><span class="chip">Comfy</span><span class="chip">Foxtrot</span><span class="chip">OLX</span><span class="chip" data-i18n="otherStores">Другие магазины</span></div>
     </div></section>
     <div class="wrap">
-      <section class="notice"><div class="notice-icon">🔎</div><div><strong>Сравниваем сопоставимые товары</strong><p>Будем учитывать модель, характеристики и состояние товара. Предложения OLX планируем показывать отдельно от новых товаров из магазинов.</p></div></section>
+      <section class="notice"><div class="notice-icon">🔎</div><div><strong data-i18n="noticeTitle">Сравниваем сопоставимые товары</strong><p data-i18n="noticeText">Будем учитывать модель, характеристики и состояние товара. Предложения OLX планируем показывать отдельно от новых товаров из магазинов.</p></div></section>
       <section class="bottom">
-        <article class="card"><h2>❤️ Поддержать проект</h2><p>Поиск будет бесплатным. Позже добавим добровольную поддержку проекта без обязательных платежей.</p></article>
-        <article class="card"><h2>⭐ Отзывы пользователей</h2><p>Добавим возможность оценить сайт и оставить отзыв после запуска поиска.</p></article>
+        <article class="card"><h2 data-i18n="supportTitle">❤️ Поддержать проект</h2><p data-i18n="supportText">Поиск будет бесплатным. Позже добавим добровольную поддержку проекта без обязательных платежей.</p></article>
+        <article class="card"><h2 data-i18n="reviewsTitle">⭐ Отзывы пользователей</h2><p data-i18n="reviewsText">Добавим возможность оценить сайт и оставить отзыв после запуска поиска.</p></article>
       </section>
     </div>
   </main>
-  <footer><div class="wrap">ДЕШЕВШЕ · Проект в разработке · Украина</div></footer>
+  <footer><div class="wrap" data-i18n="footer">ДЕШЕВШЕ · Проект в разработке · Украина</div></footer>
   <script>
-    document.getElementById('searchForm').addEventListener('submit',function(e){
+    const translations = {
+      ru: {
+        title:"ДЕШЕВШЕ — сравнение цен в Украине",
+        tagline:"Поиск выгодных цен в Украине",
+        eyebrow:"Сравнение цен в одном поиске",
+        headline:"Найди нужный товар.<br>Плати меньше.",
+        lead:"Ищем предложения украинских интернет-магазинов и площадок объявлений, чтобы тебе было проще сравнить цены.",
+        placeholder:"Например: робот-пылесос Xiaomi",
+        searchButton:"Найти товар&nbsp; →",
+        hint:"Поиск и подключение источников цен находятся в разработке. Сейчас это первая версия сайта.",
+        sourcesTitle:"Источники, которые планируем подключить",
+        otherStores:"Другие магазины",
+        noticeTitle:"Сравниваем сопоставимые товары",
+        noticeText:"Будем учитывать модель, характеристики и состояние товара. Предложения OLX планируем показывать отдельно от новых товаров из магазинов.",
+        supportTitle:"❤️ Поддержать проект",
+        supportText:"Поиск будет бесплатным. Позже добавим добровольную поддержку проекта без обязательных платежей.",
+        reviewsTitle:"⭐ Отзывы пользователей",
+        reviewsText:"Добавим возможность оценить сайт и оставить отзыв после запуска поиска.",
+        footer:"ДЕШЕВШЕ · Проект в разработке · Украина",
+        accepted:"Запрос «{query}» принят. Подключение реального поиска по магазинам — следующий этап разработки."
+      },
+      uk: {
+        title:"ДЕШЕВШЕ — порівняння цін в Україні",
+        tagline:"Пошук вигідних цін в Україні",
+        eyebrow:"Порівняння цін в одному пошуку",
+        headline:"Знайди потрібний товар.<br>Плати менше.",
+        lead:"Шукаємо пропозиції українських інтернет-магазинів і майданчиків оголошень, щоб тобі було легше порівнювати ціни.",
+        placeholder:"Наприклад: робот-пилосос Xiaomi",
+        searchButton:"Знайти товар&nbsp; →",
+        hint:"Пошук і підключення джерел цін у розробці. Наразі це перша версія сайту.",
+        sourcesTitle:"Джерела, які плануємо підключити",
+        otherStores:"Інші магазини",
+        noticeTitle:"Порівнюємо аналогічні товари",
+        noticeText:"Враховуватимемо модель, характеристики та стан товару. Пропозиції OLX плануємо показувати окремо від нових товарів із магазинів.",
+        supportTitle:"❤️ Підтримати проєкт",
+        supportText:"Пошук буде безкоштовним. Пізніше додамо добровільну підтримку проєкту без обов’язкових платежів.",
+        reviewsTitle:"⭐ Відгуки користувачів",
+        reviewsText:"Додамо можливість оцінити сайт і залишити відгук після запуску пошуку.",
+        footer:"ДЕШЕВШЕ · Проєкт у розробці · Україна",
+        accepted:"Запит «{query}» прийнято. Підключення реального пошуку по магазинах — наступний етап розробки."
+      },
+      en: {
+        title:"DESHEVSHE — price comparison in Ukraine",
+        tagline:"Find better prices in Ukraine",
+        eyebrow:"Compare prices in one search",
+        headline:"Find what you need.<br>Pay less.",
+        lead:"We look for offers from Ukrainian online stores and marketplaces to make comparing prices easier.",
+        placeholder:"For example: Xiaomi robot vacuum",
+        searchButton:"Find a product&nbsp; →",
+        hint:"Search and price-source integrations are in development. This is the first version of the website.",
+        sourcesTitle:"Sources we plan to connect",
+        otherStores:"Other stores",
+        noticeTitle:"We compare like-for-like products",
+        noticeText:"We plan to compare product models, specifications and condition. OLX listings will be shown separately from new products in stores.",
+        supportTitle:"❤️ Support the project",
+        supportText:"Search will be free. Later, we may add an optional way to support the project. No payment will be required.",
+        reviewsTitle:"⭐ User reviews",
+        reviewsText:"We plan to let visitors rate the website and leave feedback after search launches.",
+        footer:"DESHEVSHE · In development · Ukraine",
+        accepted:"Your search for “{query}” has been received. Connecting real store search is the next development step."
+      }
+    };
+    let currentLanguage = "ru";
+    function setLanguage(language) {
+      const t = translations[language] || translations.ru;
+      currentLanguage = language;
+      document.documentElement.lang = language;
+      document.title = t.title;
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.dataset.i18n;
+        if (t[key] !== undefined) el.innerHTML = t[key];
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+        const key = el.dataset.i18nPlaceholder;
+        if (t[key] !== undefined) el.placeholder = t[key];
+      });
+      document.getElementById("searchHint").dataset.i18n = "hint";
+    }
+    document.getElementById("languageSelect").addEventListener("change", e => setLanguage(e.target.value));
+    document.getElementById("searchForm").addEventListener("submit", function(e) {
       e.preventDefault();
-      const q=document.getElementById('query').value.trim();
-      if(q) document.getElementById('searchHint').textContent='Запрос «'+q+'» принят. Подключение реального поиска по магазинам — следующий этап разработки.';
+      const q = document.getElementById("query").value.trim();
+      if (q) document.getElementById("searchHint").textContent = translations[currentLanguage].accepted.replace("{query}", q);
     });
+    setLanguage("ru");
   </script>
 </body>
 </html>
