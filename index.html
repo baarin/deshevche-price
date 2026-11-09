@@ -203,7 +203,7 @@
       if (manualUrlText) {
         try {
           const parsedManualUrl = new URL(manualUrlText);
-          if (parsedManualUrl.protocol === "https:" && (parsedManualUrl.hostname === "olx.ua" || parsedManualUrl.hostname.endsWith(".olx.ua")) && /\\/d\\/uk\\/obyavlenie\\//.test(parsedManualUrl.pathname.includes("/d/uk/obyavlenie/")) manualOlxUrl = parsedManualUrl.href;
+          if (parsedManualUrl.protocol === "https:" && (parsedManualUrl.hostname === "olx.ua" || parsedManualUrl.hostname.endsWith(".olx.ua")) && parsedManualUrl.pathname.includes("/d/uk/obyavlenie/")) manualOlxUrl = parsedManualUrl.href;
         } catch (_) {}
       }
 
