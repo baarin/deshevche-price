@@ -123,7 +123,7 @@ function inspectJsonLd(html) {
 function isLikelyMismatch(product, query) {
   const q = String(query || "").toLowerCase();
   const text = ((product.title || "") + " " + (product.description || "")).toLowerCase();
-  const asksForApple = /\\b(iphone|айфон|apple)\\b/i.test(q);
+  const asksForApple = /\b(iphone|айфон|apple)\b/i.test(q);
   if (!asksForApple) return false;
   return /android|копі[яї]|копия|імітац|имитац|реплік|реплик|муляж|якісна копія|гарейна копія/i.test(text);
 }
