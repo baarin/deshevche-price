@@ -1,5 +1,6 @@
 const http = require("node:http");
 const { classifyProduct } = require("./product-matcher");
+const { parsePageTitlePrice } = require("./price-parser");
 
 const PORT = Number(process.env.PORT || 10000);
 const HOST = "0.0.0.0";
@@ -202,20 +203,36 @@ async function searchProm(query) {
       try {
         const detail = await fetchHtml(item.url);
         const inspected = inspectJsonLd(detail.html);
-        const titleMatch = detail.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-        const parsedProducts = inspected.products.map(product => ({
-          ...product,
-          listingPosition: item.position,
-          listingPage: item.listingPage,
-          possibleMismatch: /android/i.test((product.title || "") + " " + (product.description || ""))
-        }));
+        const titleMatch = detail.html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i);
+        const pageTitle = titleMatch ? titleMatch[1].replace(/\\s+/g, " ").trim() : null;
+        const pageTitlePrice = parsePageTitlePrice(pageTitle);
+        const parsedProducts = inspected.products.map(product => {
+          const jsonLdPrice = product.price;
+          const usePageTitlePrice = Boolean(
+            pageTitlePrice && pageTitlePrice.currency === product.currency
+          );
+          return {
+            ...product,
+            price: usePageTitlePrice ? pageTitlePrice.price : product.price,
+            jsonLdPrice,
+            pageTitlePrice: pageTitlePrice?.price ?? null,
+            priceSource: usePageTitlePrice ? "page-title" : "json-ld",
+            priceMismatch: Boolean(
+              usePageTitlePrice && Number(jsonLdPrice) !== Number(pageTitlePrice.price)
+            ),
+            listingPosition: item.position,
+            listingPage: item.listingPage,
+            possibleMismatch: /android/i.test((product.title || "") + " " + (product.description || ""))
+          };
+        });
         detailChecks[index] = {
           listingTitle: item.title,
           listingUrl: item.url,
           listingPosition: item.position,
           listingPage: item.listingPage,
           httpStatus: detail.response.status,
-          pageTitle: titleMatch ? titleMatch[1].replace(/\s+/g, " ").trim() : null,
+          pageTitle,
+          pageTitlePrice: pageTitlePrice?.price ?? null,
           parsedJsonLdBlocks: inspected.scriptsCount,
           productsParsed: parsedProducts,
           error: detail.response.ok ? null : "Product page returned HTTP " + detail.response.status
