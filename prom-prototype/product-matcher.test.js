@@ -92,6 +92,33 @@ test("rejects SIM unlock cards and R-Sim accessories for a phone query", () => {
   }
 });
 
+test("rejects Pro editions when the query asks for the base iPhone 17", () => {
+  const titles = [
+    "Apple iPhone 17 Pro 256GB Cosmic Orange",
+    "Смартфон Apple iPhone 17 Pro 256GB eSim Silver",
+    "Мобільний телефон Apple iPhone 17 Pro 512GB Deep Blue MG8N4"
+  ];
+  for (const title of titles) {
+    const result = classifyProduct({ title }, "iPhone 17");
+    assert.equal(result.status, "reject", title);
+    assert.match(result.reason, /другая версия модели: pro/i);
+  }
+  const proMax = classifyProduct({ title: "Apple iPhone 17 Pro Max 512GB Silver" }, "iPhone 17");
+  assert.equal(proMax.status, "reject");
+  assert.match(proMax.reason, /другая версия модели: pro/i);
+});
+
+test("keeps the base iPhone 17 as a match for the exact base-model query", () => {
+  const titles = [
+    "Apple iPhone 17 256GB Black",
+    "Смартфон Apple iPhone 17 256GB eSIM White",
+    "Мобільний телефон Apple iPhone 17 512GB"
+  ];
+  for (const title of titles) {
+    assert.equal(classifyProduct({ title }, "iPhone 17").status, "match", title);
+  }
+});
+
 test("rejects R-Sim and WELLSIM even when the phone model range is written as 6-17", () => {
   const result = classifyProduct({
     title: "Смарт-карта R-Sim WELLSIM PRO для iPhone 6-17 Pro / Pro Max IOS 18.7.1 + 26 з підтримкою VoLTE та LTE",
