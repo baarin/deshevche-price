@@ -23,7 +23,7 @@
     input{min-width:0;flex:1;border:0;outline:0;padding:12px 13px;font:inherit}
     button{border:0;border-radius:11px;background:var(--green);color:white;padding:13px 22px;font:700 15px inherit;cursor:pointer}
     button:hover{background:#10583d}.hint{color:#78847e;font-size:13px;margin:11px 4px}
-    .sources{padding:20px 0 52px}.section-title{font-size:22px;margin:0 0 16px}
+    .paste-box{display:none;margin:18px 0 8px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}.paste-box textarea{display:block;width:100%;min-height:150px;border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.5 Arial,sans-serif;resize:vertical}.paste-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}.paste-actions small{color:var(--muted)}.listing-grid{display:grid;gap:10px;margin-top:16px}.listing{display:grid;grid-template-columns:1fr auto;gap:8px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px}.listing h3{font-size:16px;margin:0 0 5px}.listing p{font-size:13px;color:var(--muted);margin:0}.listing-price{font-size:20px;font-weight:800;white-space:nowrap}.listing a{color:var(--green);font-weight:700;font-size:13px}.sources{padding:20px 0 52px}.section-title{font-size:22px;margin:0 0 16px}
     .chips{display:flex;flex-wrap:wrap;gap:10px}.chip{background:white;border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-weight:700}
     .notice{margin:0 0 60px;background:white;border:1px solid var(--line);border-radius:18px;padding:23px;display:flex;gap:16px;align-items:flex-start}
     .notice-icon{font-size:25px}.notice p{margin:4px 0 0;color:var(--muted)}
@@ -44,7 +44,7 @@
         <input id="query" type="search" data-i18n-placeholder="placeholder" placeholder="Например: робот-пылесос Xiaomi" aria-label="Название товара" required>
         <button type="submit" data-i18n="searchButton">Найти товар&nbsp; →</button>
       </form>
-      <div class="search-results" id="searchResults" aria-live="polite"><h2 data-i18n="resultsTitle">Поиск по магазинам</h2><p data-i18n="resultsNote">Откроются результаты Google только по выбранным магазинам. Это пока не единая выдача цен.</p><div class="result-links" id="resultLinks"></div></div>
+      <div class="search-results" id="searchResults" aria-live="polite"><h2 data-i18n="resultsTitle">Поиск по магазинам</h2><p data-i18n="resultsNote">Откроются результаты Google только по выбранным магазинам. Это пока не единая выдача цен.</p><div class="result-links" id="resultLinks"></div><div class="paste-box" id="pasteBox"><strong data-i18n="pasteTitle">Добавить объявления OLX в список</strong><p data-i18n="pasteHelp">Скопируйте текст найденных объявлений на OLX и вставьте сюда. Мы выделим цены и отсортируем объявления.</p><textarea id="olxPaste" data-i18n-placeholder="pastePlaceholder" placeholder="Вставьте сюда скопированный текст со страницы OLX..."></textarea><div class="paste-actions"><button type="button" id="parseOlx" data-i18n="parseButton">Показать объявления</button><small id="parseStatus" aria-live="polite"></small></div><div class="listing-grid" id="listingGrid"></div></div></div>
       <div class="hint" id="searchHint" data-i18n="hint">Введите товар и нажмите «Найти товар», чтобы открыть поиск по магазинам.</div>
     </div></section>
     <section class="sources"><div class="wrap">
@@ -72,7 +72,8 @@
         searchButton:"Найти товар&nbsp; →",
         hint:"Введите товар и нажмите «Найти товар», чтобы открыть поиск по магазинам.",
         resultsTitle:"Результаты поиска по магазинам",
-        resultsNote:"Откроются результаты Google только по выбранным магазинам. Это пока не единая выдача цен.",
+        resultsNote:"Откроется поиск OLX и поиск по другим магазинам. Чтобы собрать объявления в список, вставьте скопированный текст OLX ниже.",
+        pasteTitle:"Добавить объявления OLX в список", pasteHelp:"Скопируйте текст найденных объявлений на OLX и вставьте сюда. Мы выделим цены и отсортируем объявления.", pastePlaceholder:"Вставьте сюда скопированный текст со страницы OLX...", parseButton:"Показать объявления", parseEmpty:"Не удалось распознать объявления. Скопируйте больше текста со страницы OLX вместе с ценами в грн.", parseCount:"Найдено объявлений: {count}",
         sourcesTitle:"Источники, которые планируем подключить",
         otherStores:"Другие магазины",
         noticeTitle:"Как работает поиск сейчас",
@@ -94,7 +95,8 @@
         searchButton:"Знайти товар&nbsp; →",
         hint:"Введіть товар і натисніть «Знайти товар», щоб відкрити пошук у магазинах.",
         resultsTitle:"Результати пошуку в магазинах",
-        resultsNote:"Відкриються результати Google лише для вибраних магазинів. Це поки не єдина видача цін.",
+        resultsNote:"Відкриється пошук OLX та пошук в інших магазинах. Щоб зібрати оголошення в список, вставте скопійований текст OLX нижче.",
+        pasteTitle:"Додати оголошення OLX до списку", pasteHelp:"Скопіюйте текст знайдених оголошень на OLX і вставте сюди. Ми визначимо ціни та відсортуємо оголошення.", pastePlaceholder:"Вставте сюди скопійований текст зі сторінки OLX...", parseButton:"Показати оголошення", parseEmpty:"Не вдалося розпізнати оголошення. Скопіюйте більше тексту зі сторінки OLX разом із цінами в грн.", parseCount:"Знайдено оголошень: {count}",
         sourcesTitle:"Джерела, які плануємо підключити",
         otherStores:"Інші магазини",
         noticeTitle:"Як зараз працює пошук",
@@ -116,7 +118,8 @@
         searchButton:"Find a product&nbsp; →",
         hint:"Enter a product and select “Find a product” to open searches across stores.",
         resultsTitle:"Store search results",
-        resultsNote:"Google results will be limited to the selected stores. This is not yet a combined price list.",
+        resultsNote:"OLX search and searches on other stores will open. To collect listings into one list, paste the copied OLX text below.",
+        pasteTitle:"Add OLX listings to the list", pasteHelp:"Copy the text of the listings from OLX and paste it here. We will detect prices and sort the listings.", pastePlaceholder:"Paste copied text from the OLX page here...", parseButton:"Show listings", parseEmpty:"Could not recognize listings. Copy more text from the OLX page, including prices in UAH.", parseCount:"Listings found: {count}",
         sourcesTitle:"Sources we plan to connect",
         otherStores:"Other stores",
         noticeTitle:"How search works right now",
@@ -176,8 +179,61 @@
         links.appendChild(a);
       });
       document.getElementById("searchResults").style.display = "block";
+      document.getElementById("pasteBox").style.display = "block";
       document.getElementById("searchHint").textContent = "";
     });
+
+    document.getElementById("parseOlx").addEventListener("click", function() {
+      const raw = document.getElementById("olxPaste").value || "";
+      const lines = raw.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+      const listings = [];
+      const pricePattern = /(?:^|\s)(\d{1,3}(?:[\s\u00a0\u202f]?\d{3})+|\d+)\s*грн\.?/i;
+      lines.forEach((line, index) => {
+        const match = line.match(pricePattern);
+        if (!match) return;
+        const price = Number(match[1].replace(/[\s\u00a0\u202f]/g, ""));
+        if (!Number.isFinite(price) || price <= 0) return;
+        let title = "";
+        for (let i = index - 1; i >= Math.max(0, index - 7); i--) {
+          const candidate = lines[i];
+          if (/^https?:\/\//i.test(candidate) || /^image$/i.test(candidate) || /^svg$/i.test(candidate)) continue;
+          if (candidate.length > 5 && !/^(зберегти|сохранить|save|нове|б\/у)$/i.test(candidate)) { title = candidate; break; }
+        }
+        const meta = lines.slice(index + 1, index + 4).filter(x => !/^https?:\/\//i.test(x) && !/^svg$/i.test(x)).join(" · ");
+        const urlMatch = raw.match(/https?:\/\/(?:www\.)?olx\.ua\/[^\s)\]>]+/i);
+        listings.push({title: title || "Оголошення OLX", price, meta, url: urlMatch ? urlMatch[0] : ""});
+      });
+      const unique = listings.filter((item, i, all) => all.findIndex(x => x.price === item.price && x.title === item.title) === i).sort((a,b) => a.price - b.price);
+      const grid = document.getElementById("listingGrid");
+      grid.replaceChildren();
+      const status = document.getElementById("parseStatus");
+      if (!unique.length) { status.textContent = translations[currentLanguage].parseEmpty; return; }
+      unique.forEach(item => {
+        const card = document.createElement("article");
+        card.className = "listing";
+        const info = document.createElement("div");
+        const title = document.createElement("h3");
+        title.textContent = item.title;
+        const meta = document.createElement("p");
+        meta.textContent = item.meta;
+        info.append(title, meta);
+        if (item.url) {
+          const link = document.createElement("a");
+          link.href = item.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = "OLX";
+          info.appendChild(link);
+        }
+        const price = document.createElement("div");
+        price.className = "listing-price";
+        price.textContent = item.price.toLocaleString("uk-UA") + " грн";
+        card.append(info, price);
+        grid.appendChild(card);
+      });
+      status.textContent = translations[currentLanguage].parseCount.replace("{count}", unique.length);
+    });
+
     setLanguage("ru");
   </script>
 </body>
