@@ -129,77 +129,137 @@ function isLikelyMismatch(product, query) {
 }
 
 async function searchProm(query) {
-  const url = new URL(SEARCH_BASE);
-  url.searchParams.set("search_term", query);
-  url.searchParams.set("page", "1");
-
-  const { response, html } = await fetchHtml(url);
-  if (!response.ok) throw new Error("Prom.ua returned HTTP " + response.status);
-
-  const listing = inspectJsonLd(html);
+  const MAX_RESULTS = 99;
+  const MAX_LISTING_PAGES = 4;
+  const DETAIL_CONCURRENCY = 5;
   const listItems = [];
-  for (const match of html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+  const seenUrls = new Set();
+  let listingStatus = null;
+  let firstListing = null;
+  let pagesChecked = 0;
+
+  // Collect up to 99 distinct public listing entries across up to four search pages.
+  for (let page = 1; page <= MAX_LISTING_PAGES && listItems.length < MAX_RESULTS; page++) {
+    const url = new URL(SEARCH_BASE);
+    url.searchParams.set("search_term", query);
+    url.searchParams.set("page", String(page));
+
     try {
-      const data = JSON.parse(match[1].trim());
-      const roots = Array.isArray(data) ? data : [data];
-      for (const root of roots) {
-        if (root?.["@type"] === "ItemList" && Array.isArray(root.itemListElement)) {
-          for (const entry of root.itemListElement) {
-            const item = entry?.item && typeof entry.item === "object" ? entry.item : entry;
-            const rawUrl = item?.url || entry?.url || null;
-            if (!rawUrl) continue;
-            try {
-              const productUrl = new URL(rawUrl, "https://prom.ua");
-              if (productUrl.hostname === "prom.ua" || productUrl.hostname.endsWith(".prom.ua")) {
+      const result = await fetchHtml(url);
+      if (!result.response.ok) {
+        if (page === 1) throw new Error("Prom.ua returned HTTP " + result.response.status);
+        break;
+      }
+      pagesChecked++;
+      listingStatus = result.response.status;
+      if (!firstListing) firstListing = inspectJsonLd(result.html);
+
+      let addedOnPage = 0;
+      for (const match of result.html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+        try {
+          const data = JSON.parse(match[1].trim());
+          const roots = Array.isArray(data) ? data : [data];
+          for (const root of roots) {
+            if (root?.["@type"] !== "ItemList" || !Array.isArray(root.itemListElement)) continue;
+            for (const entry of root.itemListElement) {
+              const item = entry?.item && typeof entry.item === "object" ? entry.item : entry;
+              const rawUrl = item?.url || entry?.url || null;
+              if (!rawUrl) continue;
+              try {
+                const productUrl = new URL(rawUrl, "https://prom.ua");
+                if (!(productUrl.hostname === "prom.ua" || productUrl.hostname.endsWith(".prom.ua"))) continue;
+                const normalizedUrl = productUrl.toString();
+                if (seenUrls.has(normalizedUrl)) continue;
+                seenUrls.add(normalizedUrl);
                 listItems.push({
                   title: item.name || entry.name || null,
-                  url: productUrl.toString(),
-                  position: entry.position || null
+                  url: normalizedUrl,
+                  position: entry.position || listItems.length + 1,
+                  listingPage: page
                 });
-              }
-            } catch {}
+                addedOnPage++;
+                if (listItems.length >= MAX_RESULTS) break;
+              } catch {}
+              if (listItems.length >= MAX_RESULTS) break;
+            }
+            if (listItems.length >= MAX_RESULTS) break;
           }
-        }
+        } catch {}
+        if (listItems.length >= MAX_RESULTS) break;
       }
-    } catch {}
-  }
-
-  const detailChecks = [];
-  for (const item of listItems.slice(0, 3)) {
-    try {
-      const detail = await fetchHtml(item.url);
-      const inspected = inspectJsonLd(detail.html);
-      const titleMatch = detail.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-      detailChecks.push({
-        listingTitle: item.title,
-        listingUrl: item.url,
-        listingPosition: item.position,
-        httpStatus: detail.response.status,
-        pageTitle: titleMatch ? titleMatch[1].replace(/\s+/g, " ").trim() : null,
-        parsedJsonLdBlocks: inspected.scriptsCount,
-        jsonLdDiagnostics: inspected.diagnostics,
-        productsParsed: inspected.products.map(product => ({
-          ...product,
-          listingPosition: item.position,
-          possibleMismatch: /android/i.test((product.title || "") + " " + (product.description || ""))
-        }))
-      });
+      if (addedOnPage === 0) break;
+      if (page < MAX_LISTING_PAGES && listItems.length < MAX_RESULTS) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
     } catch (error) {
-      detailChecks.push({
-        listingTitle: item.title,
-        listingUrl: item.url,
-        error: error.name === "AbortError" ? "Product page request timed out" : error.message
-      });
+      if (page === 1) throw error;
+      break;
     }
   }
 
-  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  // Fetch product pages in a small worker pool instead of launching 99 requests at once.
+  const detailChecks = new Array(listItems.length);
+  let nextIndex = 0;
+  async function worker() {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= listItems.length) return;
+      const item = listItems[index];
+      try {
+        const detail = await fetchHtml(item.url);
+        const inspected = inspectJsonLd(detail.html);
+        const titleMatch = detail.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        const parsedProducts = inspected.products.map(product => ({
+          ...product,
+          listingPosition: item.position,
+          listingPage: item.listingPage,
+          possibleMismatch: /android/i.test((product.title || "") + " " + (product.description || ""))
+        }));
+        detailChecks[index] = {
+          listingTitle: item.title,
+          listingUrl: item.url,
+          listingPosition: item.position,
+          listingPage: item.listingPage,
+          httpStatus: detail.response.status,
+          pageTitle: titleMatch ? titleMatch[1].replace(/\s+/g, " ").trim() : null,
+          parsedJsonLdBlocks: inspected.scriptsCount,
+          productsParsed: parsedProducts,
+          error: detail.response.ok ? null : "Product page returned HTTP " + detail.response.status
+        };
+      } catch (error) {
+        detailChecks[index] = {
+          listingTitle: item.title,
+          listingUrl: item.url,
+          listingPosition: item.position,
+          listingPage: item.listingPage,
+          error: error.name === "AbortError" ? "Product page request timed out" : error.message
+        };
+      }
+    }
+  }
+  await Promise.all(Array.from(
+    { length: Math.min(DETAIL_CONCURRENCY, listItems.length) },
+    () => worker()
+  ));
+
+  const titleMatch = firstListing
+    ? null
+    : null;
   const unique = new Map();
-  const detailProducts = detailChecks.flatMap(check => check.productsParsed || []);
   const rejectedProducts = [];
-  for (const product of [...listing.products, ...detailProducts]) {
+  const rejectedUrls = new Set();
+  const allProducts = detailChecks.flatMap(check => check?.productsParsed || []);
+  for (const product of [...(firstListing?.products || []), ...allProducts]) {
     if (isLikelyMismatch(product, query)) {
-      rejectedProducts.push({ title: product.title, price: product.price, url: product.url, reason: "Possible imitation or Android-based copy of an Apple product" });
+      if (!rejectedUrls.has(product.url)) {
+        rejectedUrls.add(product.url);
+        rejectedProducts.push({
+          title: product.title,
+          price: product.price,
+          url: product.url,
+          reason: "Possible imitation or Android-based copy of an Apple product"
+        });
+      }
       continue;
     }
     const key = product.url;
@@ -210,19 +270,21 @@ async function searchProm(query) {
     source: "Prom.ua public search page",
     query,
     checkedAt: new Date().toISOString(),
-    httpStatus: response.status,
-    pageTitle: titleMatch ? titleMatch[1].replace(/\s+/g, " ").trim() : null,
-    htmlMentionsQuery: html.toLowerCase().includes(query.toLowerCase()),
-    parsedJsonLdBlocks: listing.scriptsCount,
-    jsonLdDiagnostics: listing.diagnostics,
+    httpStatus: listingStatus,
+    pagesChecked,
+    maxResults: MAX_RESULTS,
     itemListCount: listItems.length,
-    firstListItems: listItems.slice(0, 3),
+    candidateCount: listItems.length,
+    checkedProductPages: detailChecks.filter(check => check && !check.error).length,
+    failedProductPages: detailChecks.filter(check => check?.error).length,
+    parsedJsonLdBlocks: firstListing?.scriptsCount || 0,
+    jsonLdDiagnostics: firstListing?.diagnostics || [],
+    firstListItems: listItems.slice(0, 10),
     productPageChecks: detailChecks,
     rejectedProducts,
-    products: [...unique.values()].sort((a, b) => a.price - b.price).slice(0, 30)
+    products: [...unique.values()].sort((a, b) => a.price - b.price).slice(0, MAX_RESULTS)
   };
 }
-
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://" + (req.headers.host || "localhost"));
   if (url.pathname === "/health") {
