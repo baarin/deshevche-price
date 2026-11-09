@@ -203,14 +203,15 @@
       if (manualUrlText) {
         try {
           const parsedManualUrl = new URL(manualUrlText);
-          if (parsedManualUrl.protocol === "https:" && (parsedManualUrl.hostname === "olx.ua" || parsedManualUrl.hostname.endsWith(".olx.ua")) && /\\/d\\/uk\\/obyavlenie\\//.test(parsedManualUrl.pathname)) manualOlxUrl = parsedManualUrl.href;
+          if (parsedManualUrl.protocol === "https:" && (parsedManualUrl.hostname === "olx.ua" || parsedManualUrl.hostname.endsWith(".olx.ua")) && /\\/d\\/uk\\/obyavlenie\\//.test(parsedManualUrl.pathname.includes("/d/uk/obyavlenie/")) manualOlxUrl = parsedManualUrl.href;
         } catch (_) {}
       }
 
-      const allOlxUrls = [...new Set((raw.match(/https?:\\/\\/(?:www\\.)?olx\\.ua\\/[^\\s)\\]>]+/ig) || []).map(value => {
+      const allOlxUrls = [...new Set(raw.split(/\\s+/).map(value => {
+        const cleaned = value.replace(/[.,;]+$/, "");
         try {
-          const parsed = new URL(value.replace(/[.,;]+$/, ""));
-          return (parsed.hostname === "olx.ua" || parsed.hostname.endsWith(".olx.ua")) ? parsed.href : "";
+          const parsed = new URL(cleaned);
+          return (parsed.protocol === "https:" && (parsed.hostname === "olx.ua" || parsed.hostname.endsWith(".olx.ua")) && parsed.pathname.includes("/d/uk/obyavlenie/")) ? parsed.href : "";
         } catch (_) { return ""; }
       }).filter(Boolean))];
 
