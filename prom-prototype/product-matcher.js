@@ -3,10 +3,10 @@ const ACCESSORY_TITLE_PATTERNS = [
   // This catches listings such as "Apple EarPods ... for iPhone 15" and
   // "Pitaka case for iPhone 15 Plus", without rejecting a phone whose
   // description/title mentions a replaced battery after the model name.
-  /\\b(?:чехол|чохол|кейс|case|cover|накладка|захисне\\s+скло|защитное\\s+стекло|стекло|скло|пленка|плівка|screen\\s+protector|protector)\\b/i,
-  /\\b(?:зарядка|зарядний\\s+пристрій|зарядное\\s+устройство|charger|charging\\s+adapter|адаптер\\s+питания|кабель|cable|шнур)\\b/i,
-  /\\b(?:наушники|навушники|earpods|earbuds|headphones|headset|гарнитура|гарнітура|амбушюры|амбушури)\\b/i,
-  /\\b(?:аккумулятор|батарея|battery|дисплей|экран|display|screen|шлейф|запчасть|запчастина|деталь|ремешок|ремінець|strap|держатель|тримач|подставка|підставка)\\b/i
+  /\b(?:чехол|чохол|кейс|case|cover|накладка|захисне\s+скло|защитное\s+стекло|стекло|скло|пленка|плівка|screen\s+protector|protector)\b/i,
+  /\b(?:зарядка|зарядний\s+пристрій|зарядное\s+устройство|charger|charging\s+adapter|адаптер\s+питания|кабель|cable|шнур)\b/i,
+  /\b(?:наушники|навушники|earpods|earbuds|headphones|headset|гарнитура|гарнітура|амбушюры|амбушури)\b/i,
+  /\b(?:аккумулятор|батарея|battery|дисплей|экран|display|screen|шлейф|запчасть|запчастина|деталь|ремешок|ремінець|strap|держатель|тримач|подставка|підставка)\b/i
 ];
 
 const VARIANT_MARKERS = new Set([
