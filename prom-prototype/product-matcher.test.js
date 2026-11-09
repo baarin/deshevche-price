@@ -26,10 +26,35 @@ test("rejects accessory listings instead of confirming them", () => {
   assert.equal(classifyProduct({ title: "Apple EarPods USB-C для iPhone 15" }, "iPhone 15").status, "reject");
 });
 
+test("rejects branded accessories listed for a requested phone", () => {
+  const earpods = classifyProduct({
+    title: "Apple EarPods USB-C для iPhone 15"
+  }, "iPhone 15");
+  assert.equal(earpods.status, "reject");
+
+  const pitakaCase = classifyProduct({
+    title: "Ультратонкий магнітний чохол Pitaka MagEZ Case 4 для iPhone 15 Plus"
+  }, "iPhone 15");
+  assert.equal(pitakaCase.status, "reject");
+  assert.match(pitakaCase.reason, /аксессуар/i);
+});
+
+test("rejects a standalone battery for the requested phone", () => {
+  assert.equal(classifyProduct({
+    title: "Аккумулятор для Apple iPhone 15"
+  }, "iPhone 15").status, "reject");
+});
+
 test("does not treat a battery mention as an accessory when the listing is a phone", () => {
   assert.equal(classifyProduct({
     title: "Apple iPhone 15 128GB Yellow",
     description: "Телефон с новым аккумулятором, состояние отличное"
+  }, "iPhone 15").status, "match");
+  assert.equal(classifyProduct({
+    title: "Apple iPhone 15 256GB Black, аккумулятор 95%"
+  }, "iPhone 15").status, "match");
+  assert.equal(classifyProduct({
+    title: "Apple iPhone 15 128GB с новым аккумулятором"
   }, "iPhone 15").status, "match");
 });
 
