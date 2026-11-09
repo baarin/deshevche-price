@@ -242,9 +242,6 @@ async function searchProm(query) {
     () => worker()
   ));
 
-  const titleMatch = firstListing
-    ? null
-    : null;
   const unique = new Map();
   const rejectedProducts = [];
   const rejectedUrls = new Set();
@@ -304,7 +301,7 @@ const server = http.createServer(async (req, res) => {
       resultCount: result.products.length,
       note: result.products.length
         ? "Parsed public structured product data; verify titles and prices before using in the main site."
-        : "Diagnostic mode: checks ItemList entries and up to three public product pages. No CAPTCHA, login, or anti-bot challenge is bypassed."
+        : "No suitable structured product data was found among the checked public product pages. No CAPTCHA, login, or anti-bot challenge is bypassed."
     });
   } catch (error) {
     return send(res, 502, {
