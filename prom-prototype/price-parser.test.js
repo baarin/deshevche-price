@@ -24,3 +24,14 @@ test("returns null when a page title has no explicit price", () => {
 test("does not accept zero or malformed prices", () => {
   assert.equal(parsePageTitlePrice("Товар, ціна: 0 ₴"), null);
 });
+
+test("preserves decimal prices in page titles", () => {
+  assert.equal(
+    parsePageTitlePrice("Смарт-карта, ціна: 543.51 ₴, купити на Prom.ua").price,
+    543.51
+  );
+  assert.equal(
+    parsePageTitlePrice("Скло, ціна: 68.40 ₴, купити на Prom.ua").price,
+    68.4
+  );
+});
