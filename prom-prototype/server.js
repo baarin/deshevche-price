@@ -55,6 +55,7 @@ function cleanProduct(product) {
   }
   return {
     title: product.name || null,
+    description: product.description || null,
     price: offer.price,
     currency: offer.currency,
     url,
@@ -169,7 +170,11 @@ async function searchProm(query) {
         pageTitle: titleMatch ? titleMatch[1].replace(/\s+/g, " ").trim() : null,
         parsedJsonLdBlocks: inspected.scriptsCount,
         jsonLdDiagnostics: inspected.diagnostics,
-        productsParsed: inspected.products
+        productsParsed: inspected.products.map(product => ({
+          ...product,
+          listingPosition: item.position,
+          possibleMismatch: /android/i.test((product.title || "") + " " + (product.description || ""))
+        }))
       });
     } catch (error) {
       detailChecks.push({
@@ -182,7 +187,8 @@ async function searchProm(query) {
 
   const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   const unique = new Map();
-  for (const product of listing.products) {
+  const detailProducts = detailChecks.flatMap(check => check.productsParsed || []);
+  for (const product of [...listing.products, ...detailProducts]) {
     const key = product.url;
     if (!unique.has(key) || product.price < unique.get(key).price) unique.set(key, product);
   }
