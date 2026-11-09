@@ -43,7 +43,8 @@
         <input id="query" type="search" data-i18n-placeholder="placeholder" placeholder="Например: робот-пылесос Xiaomi" aria-label="Название товара" required>
         <button type="submit" data-i18n="searchButton">Найти товар&nbsp; →</button>
       </form>
-      <div class="hint" id="searchHint" data-i18n="hint">Поиск и подключение источников цен находятся в разработке. Сейчас это первая версия сайта.</div>
+      <div class="search-results" id="searchResults" aria-live="polite"><h2 data-i18n="resultsTitle">Поиск по магазинам</h2><p data-i18n="resultsNote">Откроются результаты Google только по выбранным магазинам. Это пока не единая выдача цен.</p><div class="result-links" id="resultLinks"></div></div>
+      <div class="hint" id="searchHint" data-i18n="hint">Введите товар и нажмите «Найти товар», чтобы открыть поиск по магазинам.</div>
     </div></section>
     <section class="sources"><div class="wrap">
       <h2 class="section-title" data-i18n="sourcesTitle">Источники, которые планируем подключить</h2>
@@ -68,7 +69,9 @@
         lead:"Ищем предложения украинских интернет-магазинов и площадок объявлений, чтобы тебе было проще сравнить цены.",
         placeholder:"Например: робот-пылесос Xiaomi",
         searchButton:"Найти товар&nbsp; →",
-        hint:"Поиск и подключение источников цен находятся в разработке. Сейчас это первая версия сайта.",
+        hint:"Введите товар и нажмите «Найти товар», чтобы открыть поиск по магазинам.",
+        resultsTitle:"Результаты поиска по магазинам",
+        resultsNote:"Откроются результаты Google только по выбранным магазинам. Это пока не единая выдача цен.",
         sourcesTitle:"Источники, которые планируем подключить",
         otherStores:"Другие магазины",
         noticeTitle:"Сравниваем сопоставимые товары",
@@ -88,7 +91,9 @@
         lead:"Шукаємо пропозиції українських інтернет-магазинів і майданчиків оголошень, щоб тобі було легше порівнювати ціни.",
         placeholder:"Наприклад: робот-пилосос Xiaomi",
         searchButton:"Знайти товар&nbsp; →",
-        hint:"Пошук і підключення джерел цін у розробці. Наразі це перша версія сайту.",
+        hint:"Введіть товар і натисніть «Знайти товар», щоб відкрити пошук у магазинах.",
+        resultsTitle:"Результати пошуку в магазинах",
+        resultsNote:"Відкриються результати Google лише для вибраних магазинів. Це поки не єдина видача цін.",
         sourcesTitle:"Джерела, які плануємо підключити",
         otherStores:"Інші магазини",
         noticeTitle:"Порівнюємо аналогічні товари",
@@ -108,7 +113,9 @@
         lead:"We look for offers from Ukrainian online stores and marketplaces to make comparing prices easier.",
         placeholder:"For example: Xiaomi robot vacuum",
         searchButton:"Find a product&nbsp; →",
-        hint:"Search and price-source integrations are in development. This is the first version of the website.",
+        hint:"Enter a product and select “Find a product” to open searches across stores.",
+        resultsTitle:"Store search results",
+        resultsNote:"Google results will be limited to the selected stores. This is not yet a combined price list.",
         sourcesTitle:"Sources we plan to connect",
         otherStores:"Other stores",
         noticeTitle:"We compare like-for-like products",
@@ -138,10 +145,32 @@
       document.getElementById("searchHint").dataset.i18n = "hint";
     }
     document.getElementById("languageSelect").addEventListener("change", e => setLanguage(e.target.value));
+    const stores = [
+      { name:"Rozetka", domain:"rozetka.com.ua" },
+      { name:"Prom.ua", domain:"prom.ua" },
+      { name:"Comfy", domain:"comfy.ua" },
+      { name:"Foxtrot", domain:"foxtrot.com.ua" },
+      { name:"OLX", domain:"olx.ua" },
+      { name:"Антошка", domain:"antoshka.ua" },
+      { name:"Будинок іграшок", domain:"bi.ua" }
+    ];
     document.getElementById("searchForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const q = document.getElementById("query").value.trim();
-      if (q) document.getElementById("searchHint").textContent = translations[currentLanguage].accepted.replace("{query}", q);
+      if (!q) return;
+      const links = document.getElementById("resultLinks");
+      links.replaceChildren();
+      stores.forEach(store => {
+        const a = document.createElement("a");
+        a.className = "result-link";
+        a.textContent = store.name + "  →";
+        a.href = "https://www.google.com/search?q=" + encodeURIComponent("site:" + store.domain + " " + q);
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        links.appendChild(a);
+      });
+      document.getElementById("searchResults").style.display = "block";
+      document.getElementById("searchHint").textContent = "";
     });
     setLanguage("ru");
   </script>
