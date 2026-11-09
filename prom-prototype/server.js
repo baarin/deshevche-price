@@ -203,8 +203,8 @@ async function searchProm(query) {
       try {
         const detail = await fetchHtml(item.url);
         const inspected = inspectJsonLd(detail.html);
-        const titleMatch = detail.html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i);
-        const pageTitle = titleMatch ? titleMatch[1].replace(/\\s+/g, " ").trim() : null;
+        const titleMatch = detail.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        const pageTitle = titleMatch ? titleMatch[1].replace(/\s+/g, " ").trim() : null;
         const pageTitlePrice = parsePageTitlePrice(pageTitle);
         const parsedProducts = inspected.products.map(product => {
           const jsonLdPrice = product.price;
