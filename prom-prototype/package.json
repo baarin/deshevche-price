@@ -1,0 +1,12 @@
+{
+  "name": "deshevche-prom-prototype",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Isolated test backend for public Prom.ua search pages",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
