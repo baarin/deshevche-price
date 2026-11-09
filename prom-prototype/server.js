@@ -97,12 +97,12 @@ function inspectVisiblePriceMarkup(html) {
       const index = match.index || 0;
       const snippet = html.slice(Math.max(0, index - 180), Math.min(html.length, index + 520));
       const textPreview = snippet
-        .replace(/<script[\\s\\S]*?<\\/script>/gi, " ")
-        .replace(/<style[\\s\\S]*?<\\/style>/gi, " ")
+        .replace(/<script[\s\S]*?<\/script>/gi, " ")
+        .replace(/<style[\s\S]*?<\/style>/gi, " ")
         .replace(/<[^>]+>/g, " ")
         .replace(/&nbsp;|&#160;/gi, " ")
         .replace(/&amp;/gi, "&")
-        .replace(/\\s+/g, " ")
+        .replace(/\s+/g, " ")
         .trim()
         .slice(0, 220);
       candidates.push({
