@@ -1,8 +1,8 @@
 const ACCESSORY_TITLE_PATTERNS = [
-  // Use explicit Unicode-aware boundaries: JavaScript's \\b does not
+  // Use explicit Unicode-aware boundaries: JavaScript's \b does not
   // recognize Cyrillic letters as word characters.
-  /(?:^|[^a-zа-яіїєґ0-9])(?:чехол|чохол|кейс|case|cover|накладка|захисне\\s+скло|защитное\\s+стекло|стекло|скло|пленка|плівка|screen\\s+protector|protector)(?=$|[^a-zа-яіїєґ0-9])/i,
-  /(?:^|[^a-zа-яіїєґ0-9])(?:зарядка|зарядний\\s+пристрій|зарядное\\s+устройство|charger|charging\\s+adapter|адаптер\\s+питания|кабель|cable|шнур)(?=$|[^a-zа-яіїєґ0-9])/i,
+  /(?:^|[^a-zа-яіїєґ0-9])(?:чехол|чохол|кейс|case|cover|накладка|захисне\s+скло|защитное\s+стекло|стекло|скло|пленка|плівка|screen\s+protector|protector)(?=$|[^a-zа-яіїєґ0-9])/i,
+  /(?:^|[^a-zа-яіїєґ0-9])(?:зарядка|зарядний\s+пристрій|зарядное\s+устройство|charger|charging\s+adapter|адаптер\s+питания|кабель|cable|шнур)(?=$|[^a-zа-яіїєґ0-9])/i,
   /(?:^|[^a-zа-яіїєґ0-9])(?:наушники|навушники|earpods|earbuds|headphones|headset|гарнитура|гарнітура|амбушюры|амбушури)(?=$|[^a-zа-яіїєґ0-9])/i,
   /(?:^|[^a-zа-яіїєґ0-9])(?:аккумулятор|батарея|battery|дисплей|экран|display|screen|шлейф|запчасть|запчастина|деталь|ремешок|ремінець|strap|держатель|тримач|подставка|підставка)(?=$|[^a-zа-яіїєґ0-9])/i
 ];
@@ -12,11 +12,11 @@ const VARIANT_MARKERS = new Set([
   "pro", "promax", "mk2", "mk3", "2024", "2025", "2026"
 ]);
 
-const IMITATION_PATTERN = /android|копі[яї]|копия|імітац|имитац|реплік|реплик|муляж|підробк|подделк|аналог\\s+під\\s+виглядом|аналог\\s+под\\s+видом/i;
-const BLOCKED_DEVICE_PATTERN = /icloud\\s*[- ]?lock|icloud\\s*заблок|\\blocked\\b|\\bзаблокован\\w*|\\bзаблокирова\\w*|на\\s+запчасти|на\\s+запчастин/i;
+const IMITATION_PATTERN = /android|копі[яї]|копия|імітац|имитац|реплік|реплик|муляж|підробк|подделк|аналог\s+під\s+виглядом|аналог\s+под\s+видом/i;
+const BLOCKED_DEVICE_PATTERN = /icloud\s*[- ]?lock|icloud\s*заблок|\blocked\b|\bзаблокован\w*|\bзаблокирова\w*|на\s+запчасти|на\s+запчастин/i;
 // These phrases are warning signs, not proof of a counterfeit. Keep such offers
 // out of confirmed matches but preserve them for manual review.
-const LOW_CONFIDENCE_LISTING_PATTERN = /высокое\\s+качество|хорошее\\s+качество|отличное\\s+качество|висока\\s+якість|хороша\\s+якість|відмінна\\s+якість|уточняйте\\s+наличие|уточнюйте\\s+наявність/i;
+const LOW_CONFIDENCE_LISTING_PATTERN = /высокое\s+качество|хорошее\s+качество|отличное\s+качество|висока\s+якість|хороша\s+якість|відмінна\s+якість|уточняйте\s+наличие|уточнюйте\s+наявність/i;
 
 function normalizeWords(value) {
   return String(value || "")
@@ -24,10 +24,10 @@ function normalizeWords(value) {
     .replace(/ё/g, "е")
     .replace(/[^a-zа-яіїєґ0-9+]+/gi, " ")
     .trim()
-    .split(/\\s+/)
+    .split(/\s+/)
     .filter(Boolean)
     .reduce((words, word, index, all) => {
-      if (/^v$/i.test(word) && /^\\d+$/.test(all[index + 1] || "")) {
+      if (/^v$/i.test(word) && /^\d+$/.test(all[index + 1] || "")) {
         words.push("v" + all[index + 1]);
         all[index + 1] = "";
       } else if (word) {
@@ -88,7 +88,7 @@ function classifyProduct(product, query) {
   const queryPhrase = queryWords.join(" ");
   const phraseIndex = titlePhrase.indexOf(queryPhrase);
   if (phraseIndex >= 0) {
-    const afterPhrase = titlePhrase.slice(phraseIndex + queryPhrase.length).trim().split(/\\s+/).filter(Boolean);
+    const afterPhrase = titlePhrase.slice(phraseIndex + queryPhrase.length).trim().split(/\s+/).filter(Boolean);
     const marker = afterPhrase.find(word => VARIANT_MARKERS.has(word) && !querySet.has(word));
     if (marker) {
       return { status: "reject", reason: "Обнаружена другая версия модели: " + marker };
