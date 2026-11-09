@@ -1,4 +1,5 @@
 const http = require("node:http");
+const { classifyProduct } = require("./product-matcher");
 
 const PORT = Number(process.env.PORT || 10000);
 const HOST = "0.0.0.0";
@@ -120,68 +121,6 @@ function inspectJsonLd(html) {
   return { scriptsCount: scripts.length, diagnostics, products };
 }
 
-function normalizeWords(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/ё/g, "е")
-    .replace(/[^a-zа-яіїєґ0-9+]+/gi, " ")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-}
-
-const ACCESSORY_TERMS = new Set([
-  "case", "cover", "чехол", "чохол", "кейс", "накладка",
-  "charger", "charging", "зарядка", "зарядний", "адаптер",
-  "cable", "кабель", "шнур", "провод",
-  "screen", "скло", "стекло", "пленка", "плівка", "защитное", "захисне",
-  "battery", "аккумулятор", "батарея",
-  "replacement", "запчасть", "запчастина", "деталь", "шлейф",
-  "ремешок", "ремінець", "strap", "earpads", "амбушюры", "амбушури",
-  "насадки", "держатель", "тримач", "подставка", "підставка"
-]);
-
-const VARIANT_MARKERS = new Set([
-  "turbo", "plus", "max", "mini", "lite", "ultra", "neo", "se",
-  "pro+", "v2", "v3", "v4", "v5", "mk2", "mk3", "2024", "2025", "2026"
-]);
-
-function isLikelyMismatch(product, query) {
-  const queryWords = normalizeWords(query);
-  const titleWords = normalizeWords(product.title);
-  const titleText = titleWords.join(" ");
-  const description = String(product.description || "").toLowerCase();
-
-  if (!queryWords.length || !titleWords.length) {
-    return { reject: true, reason: "Missing query terms or product title" };
-  }
-
-  const missing = queryWords.filter(word => !titleWords.includes(word));
-  if (missing.length) {
-    return { reject: true, reason: "Product title does not contain query terms: " + missing.join(", ") };
-  }
-
-  const accessoryWords = titleWords.filter(word => ACCESSORY_TERMS.has(word));
-  if (accessoryWords.length) {
-    return { reject: true, reason: "Likely accessory or spare part: " + accessoryWords.join(", ") };
-  }
-
-  const phrase = queryWords.join(" ");
-  const phraseIndex = titleText.indexOf(phrase);
-  if (phraseIndex >= 0) {
-    const afterPhrase = titleText.slice(phraseIndex + phrase.length).trim().split(/\s+/).filter(Boolean);
-    const marker = afterPhrase.find(word => VARIANT_MARKERS.has(word) || /^v\d+$/i.test(word));
-    if (marker) {
-      return { reject: true, reason: "Possible different model or edition: " + marker };
-    }
-  }
-
-  if (/android|копі[яї]|копия|імітац|имитац|реплік|реплик|муляж|підробк|подделк/i.test(titleText + " " + description)) {
-    return { reject: true, reason: "Possible imitation, counterfeit, or replica" };
-  }
-
-  return { reject: false, reason: null };
-}
 
 async function searchProm(query) {
   const MAX_RESULTS = 29;
@@ -299,23 +238,28 @@ async function searchProm(query) {
 
   const unique = new Map();
   const rejectedProducts = [];
-  const rejectedUrls = new Set();
+  const uncertainProducts = [];
+  const classifiedUrls = new Set();
   const allProducts = detailChecks.flatMap(check => check?.productsParsed || []);
   for (const product of [...(firstListing?.products || []), ...allProducts]) {
-    const matchCheck = isLikelyMismatch(product, query);
-    if (matchCheck.reject) {
-      if (!rejectedUrls.has(product.url)) {
-        rejectedUrls.add(product.url);
-        rejectedProducts.push({
+    const classification = classifyProduct(product, query);
+    const key = product.url;
+    if (classification.status !== "match") {
+      if (!classifiedUrls.has(key)) {
+        classifiedUrls.add(key);
+        const item = {
           title: product.title,
           price: product.price,
+          currency: product.currency,
           url: product.url,
-          reason: matchCheck.reason
-        });
+          seller: product.seller,
+          reason: classification.reason
+        };
+        if (classification.status === "reject") rejectedProducts.push(item);
+        else uncertainProducts.push(item);
       }
       continue;
     }
-    const key = product.url;
     if (!unique.has(key) || product.price < unique.get(key).price) unique.set(key, product);
   }
 
@@ -335,6 +279,7 @@ async function searchProm(query) {
     firstListItems: listItems.slice(0, 10),
     productPageChecks: detailChecks,
     rejectedProducts,
+    uncertainProducts,
     products: [...unique.values()].sort((a, b) => a.price - b.price).slice(0, MAX_RESULTS)
   };
 }
