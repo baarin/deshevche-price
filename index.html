@@ -207,7 +207,7 @@
         } catch (_) {}
       }
 
-      const allOlxUrls = [...new Set(raw.split(/\\s+/).map(value => {
+      const allOlxUrls = [...new Set(raw.split(/\s+/).map(value => {
         const cleaned = value.replace(/[.,;]+$/, "");
         try {
           const parsed = new URL(cleaned);
