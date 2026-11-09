@@ -80,3 +80,14 @@ test("rejects Cyrillic accessory titles before the requested phone model", () =>
   assert.equal(classifyProduct({ title: "Чохол для iPhone 17 з MagSafe чорний матовий" }, "iPhone 17").status, "reject");
   assert.equal(classifyProduct({ title: "Зарядний пристрій для Apple iPhone 17" }, "iPhone 17").status, "reject");
 });
+
+test("rejects SIM unlock cards and R-Sim accessories for a phone query", () => {
+  const cases = [
+    "Смарт-карта R-Sim WELLSIM PRO для iPhone 6-17 Pro",
+    "SIM-карта для разблокировки iPhone 17 Pro",
+    "Чип для разблокировки iPhone 17 Pro"
+  ];
+  for (const title of cases) {
+    assert.equal(classifyProduct({ title }, "iPhone 17 Pro").status, "reject", title);
+  }
+});
