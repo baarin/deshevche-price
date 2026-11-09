@@ -1,14 +1,10 @@
-const ACCESSORY_TERMS = new Set([
-  "case", "cover", "чехол", "чохол", "кейс", "накладка",
-  "charger", "charging", "зарядка", "зарядний", "адаптер",
-  "cable", "кабель", "шнур", "провод",
-  "screen", "скло", "стекло", "пленка", "плівка", "защитное", "захисне",
-  "battery", "аккумулятор", "батарея",
-  "replacement", "запчасть", "запчастина", "деталь", "шлейф",
-  "ремешок", "ремінець", "strap", "earpads", "амбушюры", "амбушури",
-  "насадки", "держатель", "тримач", "подставка", "підставка",
-  "чехлы", "чохли", "защита", "захист", "стекла", "плівки", "protector", "захисне"
-]);
+const ACCESSORY_TITLE_PATTERNS = [
+  /^(?:чехол|чохол|кейс|case|cover|накладка|защитное стекло|захисне скло|стекло|скло|пленка|плівка)\b/i,
+  /^(?:зарядка|зарядний пристрій|зарядное устройство|charger|charging adapter|адаптер питания|кабель|cable|шнур)\b/i,
+  /^(?:наушники|навушники|earpods|earbuds|headphones|headset|гарнитура|гарнітура|амбушюры|амбушури)\b/i,
+  /^(?:аккумулятор|батарея|battery|дисплей|экран|display|screen|шлейф|запчасть|запчастина|деталь|ремешок|ремінець|strap|держатель|тримач|подставка|підставка)\b/i,
+  /\b(?:для|for)\s+(?:apple\s+)?iphone\s+\d+/i
+];
 
 const VARIANT_MARKERS = new Set([
   "turbo", "plus", "max", "mini", "lite", "ultra", "neo", "se",
@@ -16,6 +12,7 @@ const VARIANT_MARKERS = new Set([
 ]);
 
 const IMITATION_PATTERN = /android|копі[яї]|копия|імітац|имитац|реплік|реплик|муляж|підробк|подделк|аналог\s+під\s+виглядом|аналог\s+под\s+видом/i;
+const BLOCKED_DEVICE_PATTERN = /icloud\s*[- ]?lock|icloud\s*заблок|\blocked\b|\bзаблокован\w*|\bзаблокирова\w*|на\s+запчасти|на\s+запчастин/i;
 
 function normalizeWords(value) {
   return String(value || "")
@@ -26,7 +23,6 @@ function normalizeWords(value) {
     .split(/\s+/)
     .filter(Boolean)
     .reduce((words, word, index, all) => {
-      // Product listings often write model codes as "V 9" instead of "V9".
       if (/^v$/i.test(word) && /^\d+$/.test(all[index + 1] || "")) {
         words.push("v" + all[index + 1]);
         all[index + 1] = "";
@@ -39,7 +35,8 @@ function normalizeWords(value) {
 
 function classifyProduct(product, query) {
   const queryWords = normalizeWords(query);
-  const titleWords = normalizeWords(product?.title);
+  const title = String(product?.title || "");
+  const titleWords = normalizeWords(title);
   const titleText = titleWords.join(" ");
   const description = String(product?.description || "");
   const combinedText = titleText + " " + normalizeWords(description).join(" ");
@@ -52,6 +49,17 @@ function classifyProduct(product, query) {
     return { status: "reject", reason: "В названии или описании есть признаки копии, имитации или подделки" };
   }
 
+  if (BLOCKED_DEVICE_PATTERN.test(title + " " + description)) {
+    return { status: "reject", reason: "Устройство заблокировано или продаётся на запчасти" };
+  }
+
+  // Accessory terms in a phone's description (for example, a replaced battery)
+  // must not disqualify the phone. Detect accessory listings from the title itself.
+  const accessoryPattern = ACCESSORY_TITLE_PATTERNS.find(pattern => pattern.test(title.trim()));
+  if (accessoryPattern) {
+    return { status: "reject", reason: "Это аксессуар или отдельная запчасть, а не искомое устройство" };
+  }
+
   const querySet = new Set(queryWords);
   const missing = [...new Set(queryWords)].filter(word => !titleWords.includes(word));
   if (missing.length) {
@@ -61,16 +69,8 @@ function classifyProduct(product, query) {
     };
   }
 
-  const accessoryWords = [...new Set(titleWords.filter(word => ACCESSORY_TERMS.has(word) && !querySet.has(word)))];
-  if (accessoryWords.length) {
-    return {
-      status: "uncertain",
-      reason: "В названии есть слова, характерные для аксессуаров или запчастей: " + accessoryWords.join(", ")
-    };
-  }
-
-  // Detect a different named edition immediately after the complete requested model.
-  // Markers already present in the query are ignored (e.g. repeated "V9" in a listing).
+  // Compare model editions immediately after the exact requested model phrase.
+  // Thus iPhone 15 excludes Pro/Pro Max, and iPhone 15 Pro excludes Pro Max.
   const titlePhrase = titleWords.join(" ");
   const queryPhrase = queryWords.join(" ");
   const phraseIndex = titlePhrase.indexOf(queryPhrase);
@@ -82,7 +82,7 @@ function classifyProduct(product, query) {
     }
   }
 
-  return { status: "match", reason: "Все слова запроса присутствуют; явных признаков другой модели не найдено" };
+  return { status: "match", reason: "Название соответствует запросу; признаков аксессуара, блокировки или другой версии не найдено" };
 }
 
 module.exports = { normalizeWords, classifyProduct };
