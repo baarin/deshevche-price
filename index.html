@@ -198,6 +198,13 @@
         if (Number.isFinite(price) && price > 0) priceRows.push({index, price});
       });
 
+      const allOlxUrls = [...new Set((raw.match(/https?:\\/\\/(?:www\\.)?olx\\.ua\\/[^\\s)\\]>]+/ig) || []).map(value => {
+        try {
+          const parsed = new URL(value.replace(/[.,;]+$/, ""));
+          return (parsed.hostname === "olx.ua" || parsed.hostname.endsWith(".olx.ua")) ? parsed.href : "";
+        } catch (_) { return ""; }
+      }).filter(Boolean))];
+
       const listings = priceRows.map((row, position) => {
         const previousBoundary = position > 0 ? priceRows[position - 1].index + 1 : 0;
         const nextBoundary = position + 1 < priceRows.length ? priceRows[position + 1].index : lines.length;
@@ -221,6 +228,8 @@
             if (parsed.hostname === "olx.ua" || parsed.hostname.endsWith(".olx.ua")) url = parsed.href;
           } catch (_) {}
         }
+        if (!url && priceRows.length === 1 && allOlxUrls.length === 1) url = allOlxUrls[0];
+        if (!url && priceRows.length > 1 && allOlxUrls.length === priceRows.length) url = allOlxUrls[position];
         return {title: title || "Объявление OLX", price: row.price, meta, url};
       });
 
