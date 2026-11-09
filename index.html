@@ -74,6 +74,7 @@
         resultsTitle:"Результаты поиска по магазинам",
         resultsNote:"Откроется поиск OLX и поиск по другим магазинам. Чтобы собрать объявления в список, вставьте скопированный текст OLX ниже.",
         pasteTitle:"Добавить объявления OLX в список", pasteHelp:"Скопируйте текст найденных объявлений на OLX и вставьте сюда. Мы выделим цены и отсортируем объявления.", pastePlaceholder:"Вставьте сюда скопированный текст со страницы OLX...", parseButton:"Показать объявления", parseEmpty:"Не удалось распознать объявления. Скопируйте больше текста со страницы OLX вместе с ценами в грн.", parseCount:"Найдено объявлений: {count}",
+        listingLink:"Открыть объявление OLX", listingSearchLink:"Найти товар на OLX",
         sourcesTitle:"Источники, которые планируем подключить",
         otherStores:"Другие магазины",
         noticeTitle:"Как работает поиск сейчас",
@@ -97,6 +98,7 @@
         resultsTitle:"Результати пошуку в магазинах",
         resultsNote:"Відкриється пошук OLX та пошук в інших магазинах. Щоб зібрати оголошення в список, вставте скопійований текст OLX нижче.",
         pasteTitle:"Додати оголошення OLX до списку", pasteHelp:"Скопіюйте текст знайдених оголошень на OLX і вставте сюди. Ми визначимо ціни та відсортуємо оголошення.", pastePlaceholder:"Вставте сюди скопійований текст зі сторінки OLX...", parseButton:"Показати оголошення", parseEmpty:"Не вдалося розпізнати оголошення. Скопіюйте більше тексту зі сторінки OLX разом із цінами в грн.", parseCount:"Знайдено оголошень: {count}",
+        listingLink:"Відкрити оголошення OLX", listingSearchLink:"Знайти товар на OLX",
         sourcesTitle:"Джерела, які плануємо підключити",
         otherStores:"Інші магазини",
         noticeTitle:"Як зараз працює пошук",
@@ -120,6 +122,7 @@
         resultsTitle:"Store search results",
         resultsNote:"OLX search and searches on other stores will open. To collect listings into one list, paste the copied OLX text below.",
         pasteTitle:"Add OLX listings to the list", pasteHelp:"Copy the text of the listings from OLX and paste it here. We will detect prices and sort the listings.", pastePlaceholder:"Paste copied text from the OLX page here...", parseButton:"Show listings", parseEmpty:"Could not recognize listings. Copy more text from the OLX page, including prices in UAH.", parseCount:"Listings found: {count}",
+        listingLink:"Open OLX listing", listingSearchLink:"Search this item on OLX",
         sourcesTitle:"Sources we plan to connect",
         otherStores:"Other stores",
         noticeTitle:"How search works right now",
@@ -240,14 +243,14 @@
         const meta = document.createElement("p");
         meta.textContent = item.meta;
         info.append(title, meta);
-        if (item.url) {
-          const link = document.createElement("a");
-          link.href = item.url;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-          link.textContent = "Открыть объявление OLX";
-          info.appendChild(link);
-        }
+        const link = document.createElement("a");
+        link.href = item.url || ("https://www.olx.ua/uk/list/q-" + encodeURIComponent(item.title.trim().replace(/\\s+/g, "-")) + "/");
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = item.url
+          ? translations[currentLanguage].listingLink
+          : translations[currentLanguage].listingSearchLink;
+        info.appendChild(link);
         const price = document.createElement("div");
         price.className = "listing-price";
         price.textContent = item.price.toLocaleString("uk-UA") + " грн";
