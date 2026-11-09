@@ -156,7 +156,7 @@ function inspectJsonLd(html) {
 
 
 async function searchProm(query) {
-  const MAX_RESULTS = 29;
+  const MAX_RESULTS = 99;
   const MAX_LISTING_PAGES = 4;
   const DETAIL_CONCURRENCY = 5;
   const listItems = [];
