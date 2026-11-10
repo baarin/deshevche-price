@@ -132,3 +132,38 @@ test("does not reject ordinary iPhone SIM or eSIM specifications", () => {
   assert.equal(classifyProduct({ title: "Apple iPhone 17 Pro 256GB eSIM Silver" }, "iPhone 17 Pro").status, "match");
   assert.equal(classifyProduct({ title: "Apple iPhone 17 Pro 256GB Dual SIM" }, "iPhone 17 Pro").status, "match");
 });
+test("rejects accessories appearing after the requested phone model", () => {
+  const titles = [
+    "Apple iPhone 17 защитное стекло",
+    "Apple iPhone 17 чехол MagSafe",
+    "Apple iPhone 17 шлейф зарядки",
+    "Apple iPhone 17 дисплей",
+    "Apple iPhone 17 зарядное устройство"
+  ];
+
+  for (const title of titles) {
+    assert.equal(
+      classifyProduct({ title }, "iPhone 17").status,
+      "reject",
+      title
+    );
+  }
+});
+
+test("distinguishes iPhone 17 from iPhone 17e", () => {
+  const result = classifyProduct({
+    title: "Apple iPhone 17e 256GB Black"
+  }, "iPhone 17");
+
+  assert.equal(result.status, "reject");
+  assert.match(result.reason, /другая версия модели: 17e/i);
+});
+
+test("matches iPhone 17e for an exact iPhone 17e query", () => {
+  assert.equal(
+    classifyProduct({
+      title: "Apple iPhone 17e 256GB Black"
+    }, "iPhone 17e").status,
+    "match"
+  );
+});

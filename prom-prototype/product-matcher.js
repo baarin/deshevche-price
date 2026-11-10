@@ -5,8 +5,9 @@ const ACCESSORY_TITLE_PATTERNS = [
   /(?:^|[^a-zа-яіїєґ0-9])(?:зарядка|зарядний\s+пристрій|зарядное\s+устройство|charger|charging\s+adapter|адаптер\s+питания|кабель|cable|шнур)(?=$|[^a-zа-яіїєґ0-9])/i,
   /(?:^|[^a-zа-яіїєґ0-9])(?:наушники|навушники|earpods|earbuds|headphones|headset|гарнитура|гарнітура|амбушюры|амбушури)(?=$|[^a-zа-яіїєґ0-9])/i,
   /(?:^|[^a-zа-яіїєґ0-9])(?:смарт[- ]?карта|sim[- ]?карта|sim card|r[- ]?sim|чип\s+для\s+разблокировки|чіп\s+для\s+розблокування)(?=$|[^a-zа-яіїєґ0-9])/i,
-  /(?:^|[^a-zа-яіїєґ0-9])(?:аккумулятор|батарея|battery|дисплей|экран|display|screen|шлейф|запчасть|запчастина|деталь|ремешок|ремінець|strap|держатель|тримач|подставка|підставка)(?=$|[^a-zа-яіїєґ0-9])/i
-];
+   /(?:^|[^a-zа-яіїєґ0-9])(?:аккумулятор|батарея|battery|дисплей|экран|display|screen|шлейф|запчасть|запчастина|деталь|ремешок|ремінець|strap|держатель|тримач|подставка|підставка)(?=$|[^a-zа-яіїєґ0-9])/i,
+  /(?:^|[^a-zа-яіїєґ0-9])(?:порт\s+зарядки|порт\s+для\s+зарядки|роз[’'ʼ]?єм\s+зарядки|разъ[её]м\s+зарядки|гнездо\s+зарядки|коннектор\s+зарядки|charging\s+port)(?=$|[^a-zа-яіїєґ0-9])/i
+]; 
 
 const VARIANT_MARKERS = new Set([
   "turbo", "plus", "max", "mini", "lite", "ultra", "neo", "se",
@@ -57,32 +58,77 @@ function classifyProduct(product, query) {
   }
 
   if (SIM_UNLOCK_ACCESSORY_PATTERN.test(title + " " + description)) {
-    return { status: "reject", reason: "Это SIM-карта или чип для обхода блокировки, а не искомое устройство" };
-  }
+  return { status: "reject", reason: "Це SIM-карта або чип для обходу блокування, а не шуканий пристрій" };
+}
 
-  if (BLOCKED_DEVICE_PATTERN.test(title + " " + description)) {
-    return { status: "reject", reason: "Устройство заблокировано или продаётся на запчасти" };
-  }
+if (BLOCKED_DEVICE_PATTERN.test(title + " " + description)) {
+  return { status: "reject", reason: "Устройство заблокировано или продаётся на запчасти" };
+}
+     // Detect accessories anywhere in the product title.
+  // Ignore battery mentions only when they describe a phone's condition.
+  const batteryConditionMention =
+    /(?:аккумулятор\w*|батаре\w*)\s*\d{1,3}\s*%|с\s+новым\s+аккумулятор\w*/i.test(title);
 
-  // Accessories must be classified before low-confidence wording. This keeps
-  // cases/glass out of the review bucket and, more importantly, out of matches.
-  const titlePhraseForAccessory = titleWords.join(" ");
-  const queryPhraseForAccessory = queryWords.join(" ");
-  const modelPosition = titlePhraseForAccessory.indexOf(queryPhraseForAccessory);
-  const accessoryBeforeModel = modelPosition >= 0 && ACCESSORY_TITLE_PATTERNS.some(pattern => {
-    const match = pattern.exec(titlePhraseForAccessory);
-    return match && match.index < modelPosition;
-  });
-  if (accessoryBeforeModel) {
-    return { status: "reject", reason: "Это аксессуар или отдельная запчасть, а не искомое устройство" };
+  const accessoryTitleText = batteryConditionMention
+    ? titleText.replace(/аккумулятор\w*|батаре\w*/gi, " ")
+    : titleText;
+
+  const accessoryFound = ACCESSORY_TITLE_PATTERNS.some(pattern =>
+    pattern.test(accessoryTitleText)
+  );
+
+   if (accessoryFound) {
+    return {
+      status: "reject",
+      reason: "Это аксессуар или отдельная запчасть, а не искомое устройство"
+    };
   }
 
   if (LOW_CONFIDENCE_LISTING_PATTERN.test(title + " " + description)) {
-    return { status: "uncertain", reason: "В объявлении есть предупреждающие формулировки о качестве или необходимости уточнить наличие" };
+    return {
+      status: "uncertain",
+      reason: "В объявлении есть предупреждающие формулировки о качестве или необходимости уточнить наличие"
+    };
   }
 
   const querySet = new Set(queryWords);
-  const missing = [...new Set(queryWords)].filter(word => !titleWords.includes(word));
+
+  // Find the exact requested model phrase as separate words.
+  const phraseIndex = titleWords.findIndex((word, index) =>
+    queryWords.every((queryWord, offset) =>
+      titleWords[index + offset] === queryWord
+    )
+  );
+
+  // Distinguish numbered models from letter-suffix models:
+  // iPhone 17 is not iPhone 17e.
+  if (phraseIndex < 0) {
+    const lastQueryWord = queryWords[queryWords.length - 1];
+
+    if (/^\d+$/.test(lastQueryWord)) {
+      const prefixWords = queryWords.slice(0, -1);
+
+      const suffixIndex = titleWords.findIndex((word, index) =>
+        prefixWords.every((prefixWord, offset) =>
+          titleWords[index + offset] === prefixWord
+        ) &&
+        new RegExp("^" + lastQueryWord + "[a-zа-яіїєґ]+$", "i")
+          .test(titleWords[index + prefixWords.length] || "")
+      );
+
+      if (suffixIndex >= 0) {
+        const differentModel = titleWords[suffixIndex + prefixWords.length];
+
+        return {
+          status: "reject",
+          reason: "Обнаружена другая версия модели: " + differentModel
+        };
+      }
+    }
+  }
+
+  const missing = [...querySet].filter(word => !titleWords.includes(word));
+
   if (missing.length) {
     return {
       status: "uncertain",
@@ -91,18 +137,23 @@ function classifyProduct(product, query) {
   }
 
   // Compare model editions immediately after the exact requested model phrase.
-  const titlePhrase = titleWords.join(" ");
-  const queryPhrase = queryWords.join(" ");
-  const phraseIndex = titlePhrase.indexOf(queryPhrase);
-  if (phraseIndex >= 0) {
-    const afterPhrase = titlePhrase.slice(phraseIndex + queryPhrase.length).trim().split(/\s+/).filter(Boolean);
-    const marker = afterPhrase.find(word => VARIANT_MARKERS.has(word) && !querySet.has(word));
+  const afterPhrase = titleWords.slice(phraseIndex + queryWords.length);
+
+  const marker = afterPhrase.find(word =>
+    VARIANT_MARKERS.has(word) && !querySet.has(word)
+  );
+
     if (marker) {
-      return { status: "reject", reason: "Обнаружена другая версия модели: " + marker };
-    }
+    return {
+      status: "reject",
+      reason: "Обнаружена другая версия модели: " + marker
+    };
   }
 
-  return { status: "match", reason: "Название соответствует запросу; явных признаков аксессуара, блокировки или другой версии не найдено" };
+  return {
+    status: "match",
+    reason: "Название соответствует запросу; явных признаков аксессуара, блокировки или другой версии не найдено"
+  };
 }
 
 module.exports = { normalizeWords, classifyProduct };
