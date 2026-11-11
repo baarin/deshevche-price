@@ -22,7 +22,7 @@
     .searchbox{display:flex;gap:10px;padding:9px;background:white;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 35px #183c2910;max-width:780px}
     input{min-width:0;flex:1;border:0;outline:0;padding:12px 13px;font:inherit}
     button{border:0;border-radius:11px;background:var(--green);color:white;padding:13px 22px;font:700 15px inherit;cursor:pointer}
-    button:hover{background:#10583d}.hint{color:#78847e;font-size:13px;margin:11px 4px}.search-results{margin-top:22px}.search-results h2{font-size:20px}.result-links{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.result-link{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--green);font-weight:700;text-decoration:none}.result-link:hover{border-color:var(--green);text-decoration:underline}
+    button:hover{background:#10583d}.hint{color:#78847e;font-size:13px;margin:11px 4px}.search-results{margin-top:22px}.search-results h2{font-size:20px}.result-links{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.api-status{margin:14px 0;color:var(--muted)}.product-results{display:grid;gap:12px;margin:16px 0}.product-card{display:grid;grid-template-columns:1fr auto;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}.product-card h3{font-size:16px;line-height:1.4;margin:0 0 8px}.product-meta{font-size:13px;color:var(--muted);margin:4px 0}.product-price{font-size:21px;font-weight:800;white-space:nowrap;text-align:right}.product-link{display:inline-block;margin-top:8px;color:var(--green);font-weight:700;font-size:14px}@media(max-width:520px){.product-card{grid-template-columns:1fr}.product-price{text-align:left}}.result-link{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--green);font-weight:700;text-decoration:none}.result-link:hover{border-color:var(--green);text-decoration:underline}
     .paste-box{display:none;margin:18px 0 8px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}.paste-box input[type="url"]{display:block;width:100%;margin:12px 0;border:1px solid var(--line);border-radius:10px;padding:12px;font:14px Arial,sans-serif}.paste-box textarea{display:block;width:100%;min-height:150px;border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.5 Arial,sans-serif;resize:vertical}.paste-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}.paste-actions small{color:var(--muted)}.listing-grid{display:grid;gap:10px;margin-top:16px}.listing{display:grid;grid-template-columns:1fr auto;gap:8px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px}.listing h3{font-size:16px;margin:0 0 5px}.listing p{font-size:13px;color:var(--muted);margin:0}.listing-price{font-size:20px;font-weight:800;white-space:nowrap}.listing a{color:var(--green);font-weight:700;font-size:13px}.sources{padding:20px 0 52px}.section-title{font-size:22px;margin:0 0 16px}
     .chips{display:flex;flex-wrap:wrap;gap:10px}.chip{background:white;border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-weight:700}
     .notice{margin:0 0 60px;background:white;border:1px solid var(--line);border-radius:18px;padding:23px;display:flex;gap:16px;align-items:flex-start}
@@ -44,7 +44,7 @@
         <input id="query" type="search" data-i18n-placeholder="placeholder" placeholder="Например: робот-пылесос Xiaomi" aria-label="Название товара" required>
         <button type="submit" data-i18n="searchButton">Найти товар&nbsp; →</button>
       </form>
-      <div class="search-results" id="searchResults" aria-live="polite"><h2 data-i18n="resultsTitle">Поиск по магазинам</h2><p data-i18n="resultsNote">Откроются результаты Google только по выбранным магазинам. Это пока не единая выдача цен.</p><div class="result-links" id="resultLinks"></div><div class="paste-box" id="pasteBox"><strong data-i18n="pasteTitle">Добавить объявления OLX в список</strong><p data-i18n="pasteHelp">Скопируйте текст найденных объявлений на OLX и вставьте сюда. Мы выделим цены и отсортируем объявления.</p><input id="olxUrl" type="url" data-i18n-placeholder="directUrlPlaceholder" placeholder="Вставьте прямую ссылку на объявление OLX (необязательно)" aria-label="Прямая ссылка на объявление OLX"><textarea id="olxPaste" data-i18n-placeholder="pastePlaceholder" placeholder="Вставьте сюда скопированный текст со страницы OLX..."></textarea><div class="paste-actions"><button type="button" id="parseOlx" data-i18n="parseButton">Показать объявления</button><small id="parseStatus" aria-live="polite"></small></div><div class="listing-grid" id="listingGrid"></div></div></div>
+      <div class="search-results" id="searchResults" aria-live="polite"><h2 data-i18n="resultsTitle">Поиск по магазинам</h2><p data-i18n="resultsNote">Откроются результаты Google только по выбранным магазинам. Это пока не единая выдача цен.</p><div class="result-links" id="resultLinks"></div><p class="api-status" id="apiStatus" aria-live="polite"></p><div class="product-results" id="productResults"></div><div class="paste-box" id="pasteBox"><strong data-i18n="pasteTitle">Добавить объявления OLX в список</strong><p data-i18n="pasteHelp">Скопируйте текст найденных объявлений на OLX и вставьте сюда. Мы выделим цены и отсортируем объявления.</p><input id="olxUrl" type="url" data-i18n-placeholder="directUrlPlaceholder" placeholder="Вставьте прямую ссылку на объявление OLX (необязательно)" aria-label="Прямая ссылка на объявление OLX"><textarea id="olxPaste" data-i18n-placeholder="pastePlaceholder" placeholder="Вставьте сюда скопированный текст со страницы OLX..."></textarea><div class="paste-actions"><button type="button" id="parseOlx" data-i18n="parseButton">Показать объявления</button><small id="parseStatus" aria-live="polite"></small></div><div class="listing-grid" id="listingGrid"></div></div></div>
       <div class="hint" id="searchHint" data-i18n="hint">Введите товар и нажмите «Найти товар», чтобы открыть поиск по магазинам.</div>
     </div></section>
     <section class="sources"><div class="wrap">
@@ -67,18 +67,19 @@
         tagline:"Поиск выгодных цен в Украине",
         eyebrow:"Сравнение цен в одном поиске",
         headline:"Найди нужный товар.<br>Плати меньше.",
-        lead:"Ищем предложения украинских интернет-магазинов и площадок объявлений, чтобы тебе было проще сравнить цены.",
+        lead:"Сейчас автоматически ищем предложения на Prom.ua. Другие украинские магазины и OLX подключим отдельно.",
         placeholder:"Например: робот-пылесос Xiaomi",
         searchButton:"Найти товар&nbsp; →",
         hint:"Введите товар и нажмите «Найти товар», чтобы открыть поиск по магазинам.",
         resultsTitle:"Результаты поиска по магазинам",
-        resultsNote:"Откроется поиск OLX и поиск по другим магазинам. Чтобы собрать объявления в список, вставьте скопированный текст OLX ниже.",
+        resultsNote:"Сейчас поиск получает реальные предложения с Prom.ua. Другие магазины подключим отдельно.",
+        apiLoading:"Ищем предложения на Prom.ua…", apiEmpty:"По этому запросу подходящих предложений не найдено.", apiError:"Не удалось выполнить поиск. Попробуйте ещё раз позже.", resultCount:"Найдено предложений: {count}", openOffer:"Открыть предложение", sellerUnknown:"Продавец не указан",
         pasteTitle:"Добавить объявления OLX в список", pasteHelp:"Скопируйте текст найденных объявлений на OLX и вставьте сюда. Мы выделим цены и отсортируем объявления.", pastePlaceholder:"Вставьте сюда скопированный текст со страницы OLX...", parseButton:"Показать объявления", parseEmpty:"Не удалось распознать объявления. Скопируйте больше текста со страницы OLX вместе с ценами в грн.", parseCount:"Найдено объявлений: {count}", directUrlPlaceholder:"Вставьте прямую ссылку на объявление OLX (необязательно)", noDirectUrl:"Прямая ссылка не добавлена",
         listingLink:"Открыть объявление OLX", listingSearchLink:"Найти товар на OLX",
-        sourcesTitle:"Источники, которые планируем подключить",
+        sourcesTitle:"Источники поиска · Prom.ua подключён, остальные в планах",
         otherStores:"Другие магазины",
         noticeTitle:"Как работает поиск сейчас",
-        noticeText:"Пока сайт открывает отдельные результаты Google по каждому магазину. Цены, наличие, характеристики и состояние товаров автоматически не собираются и не сравниваются.",
+        noticeText:"Сейчас сайт автоматически получает предложения с Prom.ua. Другие магазины и OLX пока не подключены. Объявления OLX можно добавить вручную, вставив скопированный текст.",
         supportTitle:"❤️ Поддержать проект",
         supportText:"Поиск будет бесплатным. Позже добавим добровольную поддержку проекта без обязательных платежей.",
         reviewsTitle:"⭐ Отзывы пользователей",
@@ -91,18 +92,19 @@
         tagline:"Пошук вигідних цін в Україні",
         eyebrow:"Порівняння цін в одному пошуку",
         headline:"Знайди потрібний товар.<br>Плати менше.",
-        lead:"Шукаємо пропозиції українських інтернет-магазинів і майданчиків оголошень, щоб тобі було легше порівнювати ціни.",
+        lead:"Зараз автоматично шукаємо пропозиції на Prom.ua. Інші українські магазини та OLX підключимо окремо.",
         placeholder:"Наприклад: робот-пилосос Xiaomi",
         searchButton:"Знайти товар&nbsp; →",
         hint:"Введіть товар і натисніть «Знайти товар», щоб відкрити пошук у магазинах.",
         resultsTitle:"Результати пошуку в магазинах",
-        resultsNote:"Відкриється пошук OLX та пошук в інших магазинах. Щоб зібрати оголошення в список, вставте скопійований текст OLX нижче.",
+        resultsNote:"Зараз пошук отримує реальні пропозиції з Prom.ua. Інші магазини підключимо окремо.",
+        apiLoading:"Шукаємо пропозиції на Prom.ua…", apiEmpty:"За цим запитом відповідних пропозицій не знайдено.", apiError:"Не вдалося виконати пошук. Спробуйте ще раз пізніше.", resultCount:"Знайдено пропозицій: {count}", openOffer:"Відкрити пропозицію", sellerUnknown:"Продавця не вказано",
         pasteTitle:"Додати оголошення OLX до списку", pasteHelp:"Скопіюйте текст знайдених оголошень на OLX і вставте сюди. Ми визначимо ціни та відсортуємо оголошення.", pastePlaceholder:"Вставте сюди скопійований текст зі сторінки OLX...", parseButton:"Показати оголошення", parseEmpty:"Не вдалося розпізнати оголошення. Скопіюйте більше тексту зі сторінки OLX разом із цінами в грн.", parseCount:"Знайдено оголошень: {count}", directUrlPlaceholder:"Вставте пряме посилання на оголошення OLX (необов’язково)", noDirectUrl:"Пряме посилання не додано",
         listingLink:"Відкрити оголошення OLX", listingSearchLink:"Знайти товар на OLX",
-        sourcesTitle:"Джерела, які плануємо підключити",
+        sourcesTitle:"Джерела пошуку · Prom.ua підключено, інші — у планах",
         otherStores:"Інші магазини",
         noticeTitle:"Як зараз працює пошук",
-        noticeText:"Поки сайт відкриває окремі результати Google для кожного магазину. Ціни, наявність, характеристики та стан товарів автоматично не збираються й не порівнюються.",
+        noticeText:"Зараз сайт автоматично отримує пропозиції з Prom.ua. Інші магазини та OLX поки не підключені. Оголошення OLX можна додати вручну, вставивши скопійований текст.",
         supportTitle:"❤️ Підтримати проєкт",
         supportText:"Пошук буде безкоштовним. Пізніше додамо добровільну підтримку проєкту без обов’язкових платежів.",
         reviewsTitle:"⭐ Відгуки користувачів",
@@ -115,18 +117,19 @@
         tagline:"Find better prices in Ukraine",
         eyebrow:"Compare prices in one search",
         headline:"Find what you need.<br>Pay less.",
-        lead:"We look for offers from Ukrainian online stores and marketplaces to make comparing prices easier.",
+        lead:"We currently retrieve offers from Prom.ua. Other Ukrainian stores and OLX will be connected separately.",
         placeholder:"For example: Xiaomi robot vacuum",
         searchButton:"Find a product&nbsp; →",
         hint:"Enter a product and select “Find a product” to open searches across stores.",
         resultsTitle:"Store search results",
-        resultsNote:"OLX search and searches on other stores will open. To collect listings into one list, paste the copied OLX text below.",
+        resultsNote:"Search currently retrieves real offers from Prom.ua. Other stores will be connected separately.",
+        apiLoading:"Searching Prom.ua offers…", apiEmpty:"No matching offers were found for this query.", apiError:"Search failed. Please try again later.", resultCount:"Offers found: {count}", openOffer:"Open offer", sellerUnknown:"Seller not specified",
         pasteTitle:"Add OLX listings to the list", pasteHelp:"Copy the text of the listings from OLX and paste it here. We will detect prices and sort the listings.", pastePlaceholder:"Paste copied text from the OLX page here...", parseButton:"Show listings", parseEmpty:"Could not recognize listings. Copy more text from the OLX page, including prices in UAH.", parseCount:"Listings found: {count}", directUrlPlaceholder:"Paste the direct OLX listing URL (optional)", noDirectUrl:"No direct listing URL added",
         listingLink:"Open OLX listing", listingSearchLink:"Search this item on OLX",
-        sourcesTitle:"Sources we plan to connect",
+        sourcesTitle:"Search sources · Prom.ua connected, others planned",
         otherStores:"Other stores",
         noticeTitle:"How search works right now",
-        noticeText:"For now, the site opens separate Google results for each store. Prices, availability, specifications and product condition are not automatically collected or compared.",
+        noticeText:"The site currently retrieves offers from Prom.ua automatically. Other stores and OLX are not connected yet. OLX listings can be added manually by pasting copied listing text.",
         supportTitle:"❤️ Support the project",
         supportText:"Search will be free. Later, we may add an optional way to support the project. No payment will be required.",
         reviewsTitle:"⭐ User reviews",
@@ -161,29 +164,81 @@
       { name:"Антошка", domain:"antoshka.ua" },
       { name:"Будинок іграшок", domain:"bi.ua" }
     ];
-    document.getElementById("searchForm").addEventListener("submit", function(e) {
+    const API_URL = "https://deshevche-price-api.onrender.com";
+    document.getElementById("searchForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       const q = document.getElementById("query").value.trim();
       if (!q) return;
-      const links = document.getElementById("resultLinks");
-      links.replaceChildren();
-      stores.forEach(store => {
-        const a = document.createElement("a");
-        a.className = "result-link";
-        a.textContent = store.name + "  →";
-        if (store.domain === "olx.ua") {
-          const slug = q.trim().replace(/\s+/g, "-");
-          a.href = "https://www.olx.ua/uk/list/q-" + encodeURIComponent(slug) + "/";
-        } else {
-          a.href = "https://www.google.com/search?q=" + encodeURIComponent("site:" + store.domain + " " + q);
-        }
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        links.appendChild(a);
-      });
-      document.getElementById("searchResults").style.display = "block";
-      document.getElementById("pasteBox").style.display = "block";
+      const results = document.getElementById("searchResults");
+      const status = document.getElementById("apiStatus");
+      const productResults = document.getElementById("productResults");
+      const t = translations[currentLanguage] || translations.ru;
+      results.style.display = "block";
+      productResults.replaceChildren();
+      status.textContent = t.apiLoading;
       document.getElementById("searchHint").textContent = "";
+      document.getElementById("pasteBox").style.display = "none";
+      try {
+        const response = await fetch(API_URL + "/search?q=" + encodeURIComponent(q), {
+          headers: { "Accept": "application/json" }
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || ("HTTP " + response.status));
+        const products = Array.isArray(data.products) ? data.products : [];
+        if (!products.length) {
+          status.textContent = t.apiEmpty;
+          return;
+        }
+        const formatter = new Intl.NumberFormat(currentLanguage === "en" ? "en-US" : "uk-UA", { maximumFractionDigits: 0 });
+        products.forEach(product => {
+          const card = document.createElement("article");
+          card.className = "product-card";
+          const info = document.createElement("div");
+          const title = document.createElement("h3");
+          title.textContent = product.title || q;
+          info.appendChild(title);
+          const seller = document.createElement("p");
+          seller.className = "product-meta";
+          seller.textContent = product.seller || t.sellerUnknown;
+          info.appendChild(seller);
+          if (product.condition) {
+            const condition = document.createElement("p");
+            condition.className = "product-meta";
+            condition.textContent = product.condition;
+            info.appendChild(condition);
+          }
+          if (product.url) {
+            try {
+              const offerUrl = new URL(product.url);
+              if (offerUrl.protocol === "https:" || offerUrl.protocol === "http:") {
+                const link = document.createElement("a");
+                link.className = "product-link";
+                link.href = offerUrl.href;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.textContent = t.openOffer + " →";
+                info.appendChild(link);
+              }
+            } catch (_) {}
+          }
+          const price = document.createElement("div");
+          price.className = "product-price";
+          const amount = Number(product.price);
+          price.textContent = Number.isFinite(amount) ? formatter.format(amount) + " " + (product.currency || "UAH") : "—";
+          card.append(info, price);
+          productResults.appendChild(card);
+        });
+        status.textContent = t.resultCount.replace("{count}", products.length);
+        if (data.note) {
+          const note = document.createElement("p");
+          note.className = "product-meta";
+          note.textContent = data.note;
+          productResults.appendChild(note);
+        }
+      } catch (error) {
+        console.error("Product search failed:", error);
+        status.textContent = t.apiError;
+      }
     });
 
     document.getElementById("parseOlx").addEventListener("click", function() {
