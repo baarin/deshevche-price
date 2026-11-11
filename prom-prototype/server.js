@@ -1,5 +1,5 @@
 const http = require("node:http");
-const { classifyProduct } = require("./product-matcher");
+const { classifyProduct, classifyProductCondition } = require("./product-matcher");
 const { parsePageTitlePrice } = require("./price-parser");
 const { parsePromHtmlPrice } = require("./html-price-parser");
 
@@ -137,9 +137,19 @@ function inspectJsonLd(html) {
         productNodeDetails: found.slice(0, 5).map(product => ({
           name: product.name || null,
           hasOffers: Boolean(product.offers),
-          offerKeys: product.offers && typeof product.offers === "object"
-            ? Object.keys(Array.isArray(product.offers) ? product.offers[0] || {} : product.offers).slice(0, 15)
-            : []
+          offerDetails: (Array.isArray(product.offers) ? product.offers : [product.offers])
+            .filter(offer => offer && typeof offer === "object")
+            .map(offer => ({
+              price: offer.price ?? null,
+              lowPrice: offer.lowPrice ?? null,
+              highPrice: offer.highPrice ?? null,
+              priceCurrency: offer.priceCurrency ?? null,
+              availability: offer.availability ?? null,
+              seller: typeof offer.seller === "string"
+                ? offer.seller
+                : offer.seller?.name ?? null,
+              priceSpecification: offer.priceSpecification ?? null
+            }))
         })),
         preview: raw.slice(0, 300)
       });
@@ -259,6 +269,7 @@ async function searchProm(query) {
               : "json-ld";
           return {
             ...product,
+            listingTitle: item.title,
             price: selectedPrice,
             currency: useHtmlPrice ? htmlProductPrice.currency : product.currency,
             jsonLdPrice,
@@ -290,6 +301,7 @@ async function searchProm(query) {
           htmlProductPrice,
           priceMarkupDiagnostics: inspectVisiblePriceMarkup(detail.html),
           parsedJsonLdBlocks: inspected.scriptsCount,
+          jsonLdDiagnostics: inspected.diagnostics,
           productsParsed: parsedProducts,
           error: detail.response.ok ? null : "Product page returned HTTP " + detail.response.status
         };
@@ -333,7 +345,9 @@ async function searchProm(query) {
       }
       continue;
     }
-    if (!unique.has(key) || product.price < unique.get(key).price) unique.set(key, product);
+    const condition = classifyProductCondition(product);
+    const classifiedProduct = { ...product, condition };
+    if (!unique.has(key) || product.price < unique.get(key).price) unique.set(key, classifiedProduct);
   }
 
   return {
@@ -390,13 +404,14 @@ const server = http.createServer(async (req, res) => {
       candidateCount: result.candidateCount,
       checkedProductPages: result.checkedProductPages,
       failedProductPages: result.failedProductPages,
-      products: result.products.map(({ title, price, currency, url, seller, availability }) => ({
+      products: result.products.map(({ title, price, currency, url, seller, availability, condition }) => ({
         title,
         price,
         currency,
         url,
         seller,
-        availability
+        availability,
+        condition
       })),
       resultCount: result.products.length,
       note

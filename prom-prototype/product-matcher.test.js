@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { normalizeWords, classifyProduct } = require("./product-matcher");
+const { normalizeWords, classifyProduct, classifyProductCondition } = require("./product-matcher");
 
 test("normalizes split model code V 9 to V9", () => {
   assert.deepEqual(normalizeWords("MCHOSE V 9 Pro Red"), ["mchose", "v9", "pro", "red"]);
@@ -166,4 +166,32 @@ test("matches iPhone 17e for an exact iPhone 17e query", () => {
     }, "iPhone 17e").status,
     "match"
   );
+});
+
+test("classifies product condition as used", () => {
+  assert.equal(classifyProductCondition({ title: "\u0431/\u0443 \u0441\u043c\u0430\u0440\u0442\u0444\u043e\u043d" }), "used");
+});
+
+test("used has priority over discounted", () => {
+  assert.equal(classifyProductCondition({ title: "\u0431/\u0443 \u0443\u0446\u0435\u043d\u0435\u043d\u043d\u044b\u0439 \u0441\u043c\u0430\u0440\u0442\u0444\u043e\u043d" }), "used");
+});
+
+test("classifies refurbished product", () => {
+  assert.equal(classifyProductCondition({ title: "\u0432\u0456\u0434\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0439 \u0442\u0435\u043b\u0435\u0444\u043e\u043d" }), "refurbished");
+});
+
+test("classifies discounted product", () => {
+  assert.equal(classifyProductCondition({ title: "\u0443\u0446\u0456\u043d\u0435\u043d\u0438\u0439 \u0441\u043c\u0430\u0440\u0442\u0444\u043e\u043d" }), "discounted");
+});
+
+test("classifies new product", () => {
+  assert.equal(classifyProductCondition({ title: "\u043d\u043e\u0432\u044b\u0439 \u0441\u043c\u0430\u0440\u0442\u0444\u043e\u043d" }), "new");
+});
+
+test("returns unknown when condition is not specified", () => {
+  assert.equal(classifyProductCondition({ title: "\u0441\u043c\u0430\u0440\u0442\u0444\u043e\u043d" }), "unknown");
+});
+
+test("checks listing title and description for condition", () => {
+  assert.equal(classifyProductCondition({ listingTitle: "Phone", description: "\u0431/\u0443" }), "used");
 });

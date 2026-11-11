@@ -156,4 +156,27 @@ if (BLOCKED_DEVICE_PATTERN.test(title + " " + description)) {
   };
 }
 
-module.exports = { normalizeWords, classifyProduct };
+function classifyProductCondition(product = {}) {
+  const text = [
+    product.listingTitle,
+    product.title,
+    product.description
+  ]
+    .filter(value => typeof value === "string")
+    .join(" ");
+
+  const patterns = {
+    used: /(?:б\s*[\/.]\s*у|бывш(?:ий|ая|ее|ие)\s+в\s+употреблении|вживан(?:ий|а|е|і)|уживан(?:ий|а|е|і)|used|second[\s-]*hand|pre[\s-]*owned)/iu,
+    refurbished: /(?:відновлен(?:ий|а|е|і)|восстановлен(?:ный|ная|ное|ные)|refurbished|renewed)/iu,
+    discounted: /(?:уцінен(?:ий|а|е|і)|уценен(?:ный|ная|ное|ные)|уцінк[а-и]?|уценк[а-и]?|discounted)/iu,
+    new: /(?:нов(?:ий|а|е|і|ый|ая|ое|ые)|new|sealed|запечатан(?:ий|а|е|і|ный|ная|ное|ные))/iu
+  };
+
+  if (patterns.used.test(text)) return "used";
+  if (patterns.refurbished.test(text)) return "refurbished";
+  if (patterns.discounted.test(text)) return "discounted";
+  if (patterns.new.test(text)) return "new";
+
+  return "unknown";
+}
+module.exports = { normalizeWords, classifyProduct, classifyProductCondition };
