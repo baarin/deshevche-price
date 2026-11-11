@@ -42,7 +42,11 @@ function normalizeWords(value) {
 }
 
 function classifyProduct(product, query) {
-  const queryWords = normalizeWords(query);
+  const modelQuery = String(query || "").replace(
+    /\u0431\s*[/.]\s*\u0443|\bused\b|\bsecond[\s-]*hand\b|\bpre[\s-]*owned\b|\brefurbished\b|\brenewed\b|\bdiscounted\b|\bnew\b|\bsealed\b/giu,
+    " "
+  );
+  const queryWords = normalizeWords(modelQuery);
   const title = String(product?.title || "");
   const titleWords = normalizeWords(title);
   const titleText = titleWords.join(" ");

@@ -195,3 +195,19 @@ test("returns unknown when condition is not specified", () => {
 test("checks listing title and description for condition", () => {
   assert.equal(classifyProductCondition({ listingTitle: "Phone", description: "\u0431/\u0443" }), "used");
 });
+
+
+test("ignores used condition markers when matching the requested model", () => {
+  assert.equal(
+    classifyProduct({ title: "Apple iPhone 17 256GB" }, "iPhone 17 б/у").status,
+    "match"
+  );
+  assert.equal(
+    classifyProduct({ title: "Apple iPhone 17 Pro 256GB" }, "iPhone 17 б/у").status,
+    "reject"
+  );
+  assert.equal(
+    classifyProduct({ title: "Apple iPhone 17 256GB" }, "iPhone 17").status,
+    "match"
+  );
+});
