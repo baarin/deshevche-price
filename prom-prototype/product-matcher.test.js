@@ -225,3 +225,33 @@ test("ignores used condition markers when matching the requested model", () => {
     "match"
   );
 });
+
+
+test("rejects USB and power adapters when searching for a phone", () => {
+  const titles = [
+    "Адаптер USB Type-C на HDMI 4K 60Hz з PD 100W для iPhone 15 16 MacBook iPad Pro Samsung Galaxy S25 S24 S23",
+    "Блок живлення підтримка Super Fast Charging 2.0 60W/60 Вт, без кабелю для Samsung Galaxy S26/S25/S24/S23/S22/S21/Note 10+/Z Flip 3",
+    "USB-C power adapter for Samsung Galaxy S25"
+  ];
+
+  for (const title of titles) {
+    const result = classifyProduct({ title }, "Samsung Galaxy S25");
+    assert.equal(result.status, "reject", title);
+    assert.match(result.reason, /аксессуар/i);
+  }
+});
+
+test("rejects Galaxy S25 FE when searching for the base Galaxy S25", () => {
+  const result = classifyProduct({
+    title: "Смартфон Samsung Galaxy S25 FE 5G 8/128GB Jet Black"
+  }, "Samsung Galaxy S25");
+
+  assert.equal(result.status, "reject");
+  assert.match(result.reason, /другая версия модели: fe/i);
+});
+
+test("keeps the exact base Galaxy S25 model as a match", () => {
+  assert.equal(classifyProduct({
+    title: "Мобільний телефон Samsung Galaxy S25 12/256GB Navy (SM-S931B)"
+  }, "Samsung Galaxy S25").status, "match");
+});
