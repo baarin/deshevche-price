@@ -1,3 +1,4 @@
+
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { normalizeWords, classifyProduct, classifyProductCondition } = require("./product-matcher");
@@ -50,12 +51,25 @@ test("does not treat a battery mention as an accessory when the listing is a pho
     title: "Apple iPhone 15 128GB Yellow",
     description: "Телефон с новым аккумулятором, состояние отличное"
   }, "iPhone 15").status, "match");
+
   assert.equal(classifyProduct({
     title: "Apple iPhone 15 256GB Black, аккумулятор 95%"
   }, "iPhone 15").status, "match");
+
   assert.equal(classifyProduct({
     title: "Apple iPhone 15 128GB с новым аккумулятором"
   }, "iPhone 15").status, "match");
+
+  const proMax = classifyProduct({
+    title: "Apple iPhone 17 Pro Max 256GB Cosmic Orange eSIM б/у A+, аккумулятор 95 100%, гарантия 12 мес"
+  }, "iPhone 17 б/у");
+
+  assert.equal(proMax.status, "reject");
+  assert.match(proMax.reason, /другая версия модели: pro/i);
+
+  assert.equal(classifyProduct({
+    title: "Apple iPhone 17 256GB Mist Blue eSIM б/у A+, аккумулятор 95 100%, гарантия 12 мес"
+  }, "iPhone 17 б/у").status, "match");
 });
 
 test("rejects locked phones and phones sold for parts", () => {
@@ -132,6 +146,7 @@ test("does not reject ordinary iPhone SIM or eSIM specifications", () => {
   assert.equal(classifyProduct({ title: "Apple iPhone 17 Pro 256GB eSIM Silver" }, "iPhone 17 Pro").status, "match");
   assert.equal(classifyProduct({ title: "Apple iPhone 17 Pro 256GB Dual SIM" }, "iPhone 17 Pro").status, "match");
 });
+
 test("rejects accessories appearing after the requested phone model", () => {
   const titles = [
     "Apple iPhone 17 защитное стекло",
@@ -195,7 +210,6 @@ test("returns unknown when condition is not specified", () => {
 test("checks listing title and description for condition", () => {
   assert.equal(classifyProductCondition({ listingTitle: "Phone", description: "\u0431/\u0443" }), "used");
 });
-
 
 test("ignores used condition markers when matching the requested model", () => {
   assert.equal(

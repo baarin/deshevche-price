@@ -71,7 +71,7 @@ if (BLOCKED_DEVICE_PATTERN.test(title + " " + description)) {
      // Detect accessories anywhere in the product title.
   // Ignore battery mentions only when they describe a phone's condition.
   const batteryConditionMention =
-    /(?:аккумулятор\w*|батаре\w*)\s*\d{1,3}\s*%|с\s+новым\s+аккумулятор\w*/i.test(title);
+    /(?:аккумулятор\w*|батаре\w*)\s*\d{1,3}(?:\s+\d{1,3})?\s*%|с\s+новым\s+аккумулятор\w*/i.test(title);
 
   const accessoryTitleText = batteryConditionMention
     ? titleText.replace(/аккумулятор\w*|батаре\w*/gi, " ")
