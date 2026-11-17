@@ -10,8 +10,8 @@ const ACCESSORY_TITLE_PATTERNS = [
 ]; 
 
 const VARIANT_MARKERS = new Set([
-  "turbo", "plus", "max", "mini", "lite", "ultra", "neo", "se", "fe",
-  "pro", "promax", "mk2", "mk3", "2024", "2025", "2026"
+  "turbo", "plus", "max", "mini", "lite", "neo", "se", "fe",
+  "pro", "promax", "edge", "mk2", "mk3", "2024", "2025", "2026"
 ]);
 
 const IMITATION_PATTERN = /android|копі[яї]|копия|імітац|имитац|реплік|реплик|муляж|підробк|подделк|аналог\s+під\s+виглядом|аналог\s+под\s+видом/i;
