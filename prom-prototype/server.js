@@ -1,4 +1,4 @@
-
+﻿
 const http = require("node:http");
 const {
   classifyProduct,
@@ -9,6 +9,9 @@ const { parsePromHtmlPrice } = require("./html-price-parser");
 const { searchKibernetiki } = require("./sources/kibernetiki");
 const { searchMoyo } = require("./sources/moyo");
 const { searchRozetka } = require("./sources/rozetka-reefapi");
+const { searchComfy } = require("./sources/comfy");
+const { searchFoxtrot } = require("./sources/foxtrot");
+const { searchOlx } = require("./sources/olx");
 
 const PORT = Number(process.env.PORT || 10000);
 const HOST = "0.0.0.0";
@@ -608,12 +611,18 @@ const server = http.createServer(async (req, res) => {
       promResult,
       kibernetikiResult,
       moyoResult,
-      rozetkaResult
+      rozetkaResult,
+      comfyResult,
+      foxtrotResult,
+      olxResult
     ] = await Promise.allSettled([
       searchProm(query),
       searchKibernetiki(query),
       searchMoyo(query),
-      searchRozetka(query)
+      searchRozetka(query),
+      searchComfy(query),
+      searchFoxtrot(query),
+      searchOlx(query)
     ]);
 
     const promProducts =
@@ -636,14 +645,21 @@ const server = http.createServer(async (req, res) => {
         ? rozetkaResult.value
         : [];
 
+    const comfyProducts =       comfyResult.status === "fulfilled"         ? comfyResult.value         : [];      const foxtrotProducts =       foxtrotResult.status === "fulfilled"         ? foxtrotResult.value         : [];
+    const olxProducts = olxResult.status === "fulfilled" ? olxResult.value : [];
+
     const products = [
       ...promProducts,
       ...kibernetikiProducts,
       ...moyoProducts,
-      ...rozetkaProducts
+      ...rozetkaProducts,
+      ...comfyProducts,
+      ...foxtrotProducts,
+      ...olxProducts
     ];
 
     const inStockProducts = products.filter((product) => {
+      if (product.source === "OLX") return Boolean(product.title && product.price > 0 && product.url);
       const availability = String(product.availability || "").trim().replace(/\/+$/, "").toLowerCase();
       return availability.endsWith("/instock");
     });
@@ -669,7 +685,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (kibernetikiResult.status === "fulfilled") {
-      successfulSources.push("Кібернетики");
+      successfulSources.push("РљС–Р±РµСЂРЅРµС‚РёРєРё");
     }
 
     if (moyoResult.status === "fulfilled") {
@@ -679,14 +695,16 @@ const server = http.createServer(async (req, res) => {
     if (rozetkaResult.status === "fulfilled") {
       successfulSources.push("Rozetka");
     }
+     if (comfyResult.status === "fulfilled") {       successfulSources.push("COMFY");     }      if (foxtrotResult.status === "fulfilled") {       successfulSources.push("Foxtrot");     }
 
-    const result = {
+    
+    if (olxResult.status === "fulfilled") successfulSources.push("OLX");const result = {
       ...(promResult.status === "fulfilled"
         ? promResult.value
         : {}),
       source:
         successfulSources.join(" + ") ||
-        "Нет доступных источников",
+        "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… РёСЃС‚РѕС‡РЅРёРєРѕРІ",
       products: allProducts
     };
 
@@ -701,7 +719,7 @@ const server = http.createServer(async (req, res) => {
 
     if (kibernetikiResult.status === "rejected") {
       sourceErrors.push({
-        source: "Кібернетики",
+        source: "РљС–Р±РµСЂРЅРµС‚РёРєРё",
         error:
           kibernetikiResult.reason?.message ||
           String(kibernetikiResult.reason)
@@ -722,9 +740,19 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    if (comfyResult.status === "rejected") {
+      sourceErrors.push({ source: "COMFY", error: comfyResult.reason?.message || String(comfyResult.reason) });
+    }
+
+    if (foxtrotResult.status === "rejected") {
+      sourceErrors.push({ source: "Foxtrot", error: foxtrotResult.reason?.message || String(foxtrotResult.reason) });
+    }
+
+    if (olxResult.status === "rejected") sourceErrors.push({ source: "OLX", error: olxResult.reason?.message || String(olxResult.reason) });
+
     const note =
-      "Результаты объединены из доступных источников. " +
-      "Сортировка по цене товара; доставка не учитывается.";
+      "Р РµР·СѓР»СЊС‚Р°С‚С‹ РѕР±СЉРµРґРёРЅРµРЅС‹ РёР· РґРѕСЃС‚СѓРїРЅС‹С… РёСЃС‚РѕС‡РЅРёРєРѕРІ. " +
+      "РЎРѕСЂС‚РёСЂРѕРІРєР° РїРѕ С†РµРЅРµ С‚РѕРІР°СЂР°; РґРѕСЃС‚Р°РІРєР° РЅРµ СѓС‡РёС‚С‹РІР°РµС‚СЃСЏ.";
 
     const debug = url.searchParams.get("debug") === "1";
 
@@ -789,3 +817,4 @@ server.listen(PORT, HOST, () => {
     "Prom prototype listening on " + HOST + ":" + PORT
   );
 });
+
