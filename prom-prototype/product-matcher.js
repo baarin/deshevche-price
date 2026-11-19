@@ -3,7 +3,7 @@ const ACCESSORY_TITLE_PATTERNS = [
   // recognize Cyrillic letters as word characters.
   /(?:^|[^a-zа-яіїєґ0-9])(?:чехол|чохол|кейс|case|cover|накладка|захисне\s+скло|защитное\s+стекло|стекло|скло|пленка|плівка|screen\s+protector|protector)(?=$|[^a-zа-яіїєґ0-9])/i,
   /(?:^|[^a-zа-яіїєґ0-9])(?:зарядка|зарядний\s+пристрій|зарядное\s+устройство|charger|charging\s+adapter|адаптер(?:\s+питания)?|блок\s+живлення|блок\s+питания|блок\s+зарядки|power\s+adapter|power\s+supply|кабель|cable|шнур)(?=$|[^a-zа-яіїєґ0-9])/i,
-  /(?:^|[^a-zа-яіїєґ0-9])(?:наушники|навушники|earpods|earbuds|headphones|headset|гарнитура|гарнітура|амбушюры|амбушури)(?=$|[^a-zа-яіїєґ0-9])/i,
+  /(?:^|[^a-zа-яіїєґ0-9])(?:амбушюры|амбушури)(?=$|[^a-zа-яіїєґ0-9])/i,
   /(?:^|[^a-zа-яіїєґ0-9])(?:смарт[- ]?карта|sim[- ]?карта|sim card|r[- ]?sim|чип\s+для\s+разблокировки|чіп\s+для\s+розблокування)(?=$|[^a-zа-яіїєґ0-9])/i,
    /(?:^|[^a-zа-яіїєґ0-9])(?:аккумулятор|батарея|battery|дисплей|экран|display|screen|шлейф|запчасть|запчастина|деталь|ремешок|ремінець|strap|держатель|тримач|подставка|підставка)(?=$|[^a-zа-яіїєґ0-9])/i,
   /(?:^|[^a-zа-яіїєґ0-9])(?:порт\s+зарядки|порт\s+для\s+зарядки|роз[’'ʼ]?єм\s+зарядки|разъ[её]м\s+зарядки|гнездо\s+зарядки|коннектор\s+зарядки|charging\s+port)(?=$|[^a-zа-яіїєґ0-9])/i
@@ -46,7 +46,11 @@ function classifyProduct(product, query) {
     /\u0431\s*[/.]\s*\u0443|\bused\b|\bsecond[\s-]*hand\b|\bpre[\s-]*owned\b|\brefurbished\b|\brenewed\b|\bdiscounted\b|\bnew\b|\bsealed\b/giu,
     " "
   );
-  const queryWords = normalizeWords(modelQuery);
+  const categoryWords = new Set([
+    "наушники", "навушники", "earpods", "earbuds",
+    "headphones", "headset", "гарнитура", "гарнітура"
+  ]);
+  const queryWords = normalizeWords(modelQuery).filter(word => !categoryWords.has(word));
   const title = String(product?.title || "");
   const titleWords = normalizeWords(title);
   const titleText = titleWords.join(" ");
