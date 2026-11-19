@@ -230,10 +230,12 @@ async function searchKibernetiki(query) {
 
     if (match.status !== "match") continue;
 
-    const html = await fetchHtml(url);
-    const product = parseKibernetikiProduct(html, url, query);
-
-    if (product) results.push(product);
+    const condition = classifyProductCondition(listingProduct);
+    results.push({
+      ...listingProduct,
+      condition,
+      source: "Kibernetiki"
+    });
   }
 
   const unique = new Map();
