@@ -134,7 +134,20 @@ async function searchOlx(query) {
   });
 
   if (!response.ok) {
-    throw new Error(`OLX HTTP ${response.status}: ${searchUrl}`);
+    const responseBody = await response.text();
+    const diagnostic = {
+      status: response.status,
+      finalUrl: response.url,
+      contentType: response.headers.get("content-type"),
+      server: response.headers.get("server"),
+      via: response.headers.get("via"),
+      requestId:
+        response.headers.get("x-request-id") ||
+        response.headers.get("x-datadome-request-id"),
+      datadome: response.headers.get("x-datadome"),
+      body: responseBody.replace(/\s+/g, " ").slice(0, 500)
+    };
+    throw new Error(`OLX HTTP ${response.status}: ${JSON.stringify(diagnostic)}`);
   }
 
   const html = await response.text();
