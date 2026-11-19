@@ -1,4 +1,4 @@
-﻿
+
 const http = require("node:http");
 const {
   classifyProduct,
@@ -685,7 +685,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (kibernetikiResult.status === "fulfilled") {
-      successfulSources.push("РљС–Р±РµСЂРЅРµС‚РёРєРё");
+      successfulSources.push("Кібернетики");
     }
 
     if (moyoResult.status === "fulfilled") {
@@ -704,7 +704,7 @@ const server = http.createServer(async (req, res) => {
         : {}),
       source:
         successfulSources.join(" + ") ||
-        "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… РёСЃС‚РѕС‡РЅРёРєРѕРІ",
+        "Нет доступных источников",
       products: allProducts
     };
 
@@ -719,7 +719,7 @@ const server = http.createServer(async (req, res) => {
 
     if (kibernetikiResult.status === "rejected") {
       sourceErrors.push({
-        source: "РљС–Р±РµСЂРЅРµС‚РёРєРё",
+        source: "Кібернетики",
         error:
           kibernetikiResult.reason?.message ||
           String(kibernetikiResult.reason)
@@ -751,8 +751,8 @@ const server = http.createServer(async (req, res) => {
     if (olxResult.status === "rejected") sourceErrors.push({ source: "OLX", error: olxResult.reason?.message || String(olxResult.reason) });
 
     const note =
-      "Р РµР·СѓР»СЊС‚Р°С‚С‹ РѕР±СЉРµРґРёРЅРµРЅС‹ РёР· РґРѕСЃС‚СѓРїРЅС‹С… РёСЃС‚РѕС‡РЅРёРєРѕРІ. " +
-      "РЎРѕСЂС‚РёСЂРѕРІРєР° РїРѕ С†РµРЅРµ С‚РѕРІР°СЂР°; РґРѕСЃС‚Р°РІРєР° РЅРµ СѓС‡РёС‚С‹РІР°РµС‚СЃСЏ.";
+      "Результаты объединены из доступных источников. " +
+      "Сортировка по цене товара; доставка не учитывается.";
 
     const debug = url.searchParams.get("debug") === "1";
 
