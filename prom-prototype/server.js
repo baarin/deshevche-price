@@ -583,6 +583,48 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  if (url.pathname === "/olx-diagnostic") {
+    const targets = [
+      { name: "OLX homepage", url: "https://www.olx.ua/" },
+      { name: "OLX search", url: "https://www.olx.ua/uk/list/q-Logitech-G435/" }
+    ];
+
+    const results = await Promise.all(targets.map(async (target) => {
+      try {
+        const response = await fetch(target.url, {
+          redirect: "follow",
+          signal: AbortSignal.timeout(20000),
+          headers: {
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            accept: "text/html,application/xhtml+xml"
+          }
+        });
+
+        const body = await response.text();
+
+        return {
+          target: target.name,
+          status: response.status,
+          finalUrl: response.url,
+          contentType: response.headers.get("content-type"),
+          server: response.headers.get("server"),
+          via: response.headers.get("via"),
+          body: body.replace(/\s+/g, " ").slice(0, 500)
+        };
+      } catch (error) {
+        return {
+          target: target.name,
+          error: error.message
+        };
+      }
+    }));
+
+    return send(res, 200, {
+      ok: true,
+      checkedAt: new Date().toISOString(),
+      results
+    });
+  }
   if (url.pathname !== "/search") {
     return send(res, 404, {
       ok: false,
