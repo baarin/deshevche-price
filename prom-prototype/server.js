@@ -631,11 +631,60 @@ const server = http.createServer(async (req, res) => {
       }
     }));
 
-    return send(res, 200, {
+        let jsonApiResult = null;
+    try {
+      const apiResponse = await new Promise((resolve, reject) => {
+        const req = require("node:https").request("https://www.olx.ua/api/v1/offers/?offset=0&limit=5&query=Logitech%20G435", {
+          method: "GET",
+          secureProtocol: "TLSv1_2_method",
+          headers: {
+            "user-agent": "Mozilla/5.0",
+            accept: "application/json"
+          }
+        }, response => {
+          let body = "";
+          response.setEncoding("utf8");
+          response.on("data", chunk => body += chunk);
+          response.on("end", () => resolve({
+            status: response.statusCode,
+            headers: response.headers,
+            body
+          }));
+        });
+        req.setTimeout(20000, () => req.destroy(new Error("OLX API timeout")));
+        req.on("error", reject);
+        req.end();
+      });
+      const apiBody = apiResponse.body;
+      let apiData = null;
+      try { apiData = JSON.parse(apiBody); } catch {}
+      jsonApiResult = {
+        status: apiResponse.status,
+        contentType: apiResponse.headers["content-type"],
+        server: apiResponse.headers.server,
+        via: apiResponse.headers.via,
+        body: apiBody.replace(/\s+/g, " ").slice(0, 500),
+        results: Array.isArray(apiData?.data) ? apiData.data.slice(0, 5).map(item => {
+          const priceParam = item.params?.find(param => param.key === "price");
+          return {
+            title: item.title,
+            price: priceParam?.value?.value ?? null,
+            currency: priceParam?.value?.currency ?? null,
+            url: item.url,
+            status: item.status
+          };
+        }) : [],
+        error: apiResponse.status >= 200 && apiResponse.status < 300 && !apiData ? "Invalid JSON" : null
+      };
+    } catch (error) {
+      jsonApiResult = { error: error.message };
+    }
+return send(res, 200, {
       ok: true,
       checkedAt: new Date().toISOString(),
       egressIp,
       egressIpError,
+      jsonApiResult,
       results
     });
   }
