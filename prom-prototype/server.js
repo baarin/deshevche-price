@@ -589,6 +589,18 @@ const server = http.createServer(async (req, res) => {
       { name: "OLX search", url: "https://www.olx.ua/uk/list/q-Logitech-G435/" }
     ];
 
+    let egressIp = null;
+    let egressIpError = null;
+    try {
+      const ipResponse = await fetch("https://api.ipify.org?format=json", {
+        signal: AbortSignal.timeout(10000)
+      });
+      if (!ipResponse.ok) throw new Error(`IP lookup HTTP ${ipResponse.status}`);
+      const ipData = await ipResponse.json();
+      egressIp = ipData.ip || null;
+    } catch (error) {
+      egressIpError = error.message;
+    }
     const results = await Promise.all(targets.map(async (target) => {
       try {
         const response = await fetch(target.url, {
@@ -622,6 +634,8 @@ const server = http.createServer(async (req, res) => {
     return send(res, 200, {
       ok: true,
       checkedAt: new Date().toISOString(),
+      egressIp,
+      egressIpError,
       results
     });
   }
