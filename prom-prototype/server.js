@@ -587,6 +587,8 @@ const server = http.createServer(async (req, res) => {
     const targets = [
       { name: "OLX homepage", url: "https://www.olx.ua/" },
       { name: "OLX search", url: "https://www.olx.ua/uk/list/q-Logitech-G435/" }
+      ,{ name: "OLX mobile homepage", url: "https://m.olx.ua/" }
+      ,{ name: "OLX mobile search", url: "https://m.olx.ua/uk/list/q-Logitech-G435/" }
     ];
 
     let egressIp = null;
