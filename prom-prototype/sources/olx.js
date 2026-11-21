@@ -1,4 +1,4 @@
-﻿const { classifyProduct, classifyProductCondition } =
+const { classifyProduct, classifyProductCondition } =
   require("../product-matcher");
 
 const BASE_URL = "https://www.olx.ua/";
@@ -117,44 +117,137 @@ function parseOlxCards(html, query) {
   return [...unique.values()].sort((a, b) => a.price - b.price);
 }
 
+function decodeXml(value) {
+  return decodeHtml(String(value || ""));
+}
+
+function getAtomTag(xml, tag) {
+  const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = xml.match(new RegExp(`<${escaped}\\b[^>]*>([\\s\\S]*?)<\\/${escaped}>`, "i"));
+  if (!match) return "";
+  return match[1].replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/i, "$1").trim();
+}
+
+function getAtomAttribute(tag, attribute) {
+  const escaped = attribute.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = tag.match(new RegExp(`\\b${escaped}\\s*=\\s*["']([^"']*)["']`, "i"));
+  return match ? decodeXml(match[1]) : "";
+}
+
+function parseOlxAtom(xml, query) {
+  if (!/<feed\b/i.test(xml)) {
+    throw new Error("OLX RSS-Bridge: получен ответ без Atom feed");
+  }
+
+  const entries = xml.match(/<entry\b[\s\S]*?<\/entry>/gi) || [];
+  if (!entries.length) return [];
+
+  const results = [];
+
+  for (const entry of entries) {
+    const rawTitle = getAtomTag(entry, "title");
+    const title = stripHtml(decodeXml(rawTitle));
+
+    if (/^Bridge returned error/i.test(title)) {
+      throw new Error(`OLX RSS-Bridge: ${title}`);
+    }
+
+    const links = entry.match(/<link\b[^>]*\/?>/gi) || [];
+    const alternate = links.find(link => /\brel=["']alternate["']/i.test(link));
+    const enclosure = links.find(link => /\brel=["']enclosure["']/i.test(link));
+
+    const rawUrl = alternate && getAtomAttribute(alternate, "href");
+    const image = enclosure && getAtomAttribute(enclosure, "href");
+
+    let url = null;
+    try {
+      const parsedUrl = new URL(rawUrl || "");
+      if (
+        parsedUrl.protocol === "https:" &&
+        (parsedUrl.hostname === "olx.ua" || parsedUrl.hostname === "www.olx.ua") &&
+        /^\/d\/uk\/obyavlenie\//i.test(parsedUrl.pathname)
+      ) {
+        url = parsedUrl.toString();
+      }
+    } catch {}
+
+    const rawContent = getAtomTag(entry, "content");
+    const html = decodeXml(rawContent);
+    const cityMatch = html.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i);
+    const city = cityMatch ? stripHtml(cityMatch[1]) : "";
+
+    const priceMatch = html.match(
+      /<span\b(?=[^>]*font-weight\s*:\s*bold)[^>]*>([\s\S]*?)<\/span>/i
+    );
+    const priceText = priceMatch ? stripHtml(priceMatch[1]) : "";
+    const price = parsePrice(priceText);
+
+    if (!title || !price || !url) continue;
+
+    const product = {
+      title,
+      listingTitle: title,
+      price,
+      currency: "UAH",
+      url,
+      image: image || null,
+      city: city || null,
+      priceLabel: priceText || null,
+      negotiable: /договірн|договорн/i.test(priceText),
+      seller: "OLX",
+      source: "OLX"
+    };
+
+    const match = classifyProduct(product, query);
+    if (match.status !== "match") continue;
+
+    results.push({
+      ...product,
+      condition: classifyProductCondition(product)
+    });
+  }
+
+  const unique = new Map();
+  for (const product of results) {
+    if (!unique.has(product.url)) unique.set(product.url, product);
+  }
+
+  return [...unique.values()].sort((a, b) => a.price - b.price);
+}
+
 async function searchOlx(query) {
   const slug = encodeURIComponent(
     String(query || "").trim().replace(/\s+/g, "-")
   );
 
-  const searchUrl = new URL(`/uk/list/q-${slug}/`, BASE_URL);
+  const targetUrl = new URL(`/uk/list/q-${slug}/?currency=UAH`, BASE_URL);
+  const bridgeUrl = new URL("https://bridge.folk.zone/");
 
-  const response = await fetch(searchUrl.toString(), {
+  bridgeUrl.searchParams.set("action", "display");
+  bridgeUrl.searchParams.set("bridge", "OLXBridge");
+  bridgeUrl.searchParams.set("url", targetUrl.toString());
+  bridgeUrl.searchParams.set("format", "Atom");
+  bridgeUrl.searchParams.set("_", String(Date.now()));
+
+  const response = await fetch(bridgeUrl.toString(), {
     redirect: "follow",
-    signal: AbortSignal.timeout(20000),
+    signal: AbortSignal.timeout(25000),
     headers: {
       "user-agent": USER_AGENT,
-      accept: "text/html,application/xhtml+xml"
+      accept: "application/atom+xml,application/xml,text/xml"
     }
   });
 
   if (!response.ok) {
-    const responseBody = await response.text();
-    const diagnostic = {
-      status: response.status,
-      finalUrl: response.url,
-      contentType: response.headers.get("content-type"),
-      server: response.headers.get("server"),
-      via: response.headers.get("via"),
-      requestId:
-        response.headers.get("x-request-id") ||
-        response.headers.get("x-datadome-request-id"),
-      datadome: response.headers.get("x-datadome"),
-      body: responseBody.replace(/\s+/g, " ").slice(0, 500)
-    };
-    throw new Error(`OLX HTTP ${response.status}: ${JSON.stringify(diagnostic)}`);
+    throw new Error(`OLX RSS-Bridge HTTP ${response.status}`);
   }
 
-  const html = await response.text();
-  return parseOlxCards(html, query);
+  const xml = await response.text();
+  return parseOlxAtom(xml, query);
 }
 
 module.exports = {
   searchOlx,
-  parseOlxCards
+  parseOlxCards,
+  parseOlxAtom
 };
